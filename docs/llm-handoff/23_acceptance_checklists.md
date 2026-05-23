@@ -12,7 +12,7 @@ The project is on track when:
 - movement works through prism portals,
 - non-portal walls block movement,
 - floor and ceiling block movement,
-- 15 cm forbidden zones around portal junctions are enforced,
+- forbidden zones and object-footprint clearance around portal junctions are enforced,
 - straight rays pass through portals by rigid transforms,
 - markers and traces preserve cell-local coordinates,
 - tests cover behavior without freezing implementation details,

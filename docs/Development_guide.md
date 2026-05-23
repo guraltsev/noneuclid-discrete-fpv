@@ -46,7 +46,8 @@ cell type is a vertical prism over a 2D polygonal base. Students walk inside the
 prism. Floors and ceilings are ordinary barriers. Selected vertical side faces
 are portals.
 
-The player and placed tools must never come within 15 cm of a portal junction.
+The player and placed tools must never intersect the forbidden zone or object
+clearance around a portal junction.
 Treat this as a movement and collision safety rule, not as a curvature
 calculation.
 

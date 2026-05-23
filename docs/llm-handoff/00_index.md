@@ -11,7 +11,7 @@ Read the files in numeric order. Each file is written for an LLM-assisted implem
 3. `../issues/_closed/02_development_principles.md` - closed; code style, testing philosophy, and LLM behavior rules.
 4. `../issues/_closed/03_tech_stack_and_deployment.md` - closed; TypeScript, Vite, Three.js, WebXR, tests, and GitHub Pages branch deployment.
 5. `../issues/_closed/04_repository_scaffold.md` - closed; target directory structure and import boundaries.
-6. `05_domain_language.md` - shared vocabulary for cells, portals, rays, tools, and forbidden zones.
+6. `../design/004-domain-model.md` - shared vocabulary for cells, portals, rays, tools, and forbidden zones.
 7. `06_authoring_model.md` - TypeScript world specs now, compiler/QR authoring later.
 8. `07_runtime_contracts.md` - public data contracts the implementation should stabilize early.
 9. `08_testing_strategy.md` - behavior tests, stage gates, and forbidden implementation-locking tests.
@@ -19,7 +19,7 @@ Read the files in numeric order. Each file is written for an LLM-assisted implem
 11. `10_stage_00_bootstrap.md` - initial empty project and tooling scaffold.
 12. `11_stage_01_math_primitives.md` - vectors, transforms, planes, polygons, tolerances.
 13. `12_stage_02_prism_cell_compiler.md` - first implemented cell type and portal validation.
-14. `13_stage_03_movement_collision_portals.md` - player movement, collision, portal crossing, and 15 cm forbidden zones.
+14. `13_stage_03_movement_collision_portals.md` - player movement, collision, portal crossing, and forbidden zones.
 15. `14_stage_04_three_desktop_scene.md` - first visible world with desktop controls.
 16. `15_stage_05_portal_viewing.md` - one-hop and recursive portal visibility.
 17. `16_stage_06_straight_ray_tool.md` - shoot locally straight rays through portals.
@@ -57,6 +57,7 @@ The floor and ceiling are ordinary collision surfaces and have no portals in the
 
 ## Absolute rule about singular-looking places
 
-A player or placed tool must never come closer than 15 cm to a portal junction.
+A player or placed tool must never intersect the forbidden zone or object
+clearance around a portal junction.
 
 A portal junction is a codimension-2 place where two or more portal faces meet. In a prism cell, this is usually a vertical edge where two portal walls meet. The code should treat this as a movement/collision safety rule, not as a curvature calculation.

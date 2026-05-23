@@ -52,7 +52,7 @@ A future polyhedron compiler must validate:
 
 For volume cells, a portal junction is an edge or vertex incident to two or more portal faces.
 
-The same 15 cm rule applies:
+The same forbidden-zone and object-footprint rule applies:
 
 ```text
 player and tools may not enter the forbidden neighborhood of portal junctions

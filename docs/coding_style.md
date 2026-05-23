@@ -109,5 +109,6 @@ a public contract, document it and test behavior around it.
 
 Do not compute curvature effects, holonomy, Gauss-Bonnet values, Euler
 characteristic, or point-to-point geodesics in the first runtime. The only
-curvature-adjacent first-pass behavior is the 15 cm forbidden-zone safety rule
+curvature-adjacent first-pass behavior is the forbidden-zone and object-footprint
+safety rule
 near portal junctions.

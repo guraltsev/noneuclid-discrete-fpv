@@ -48,6 +48,7 @@ tests/smoke.test.ts
 docs/design/001-stack.md
 docs/design/002-cell-complex-first.md
 docs/design/003-no-curvature-engine.md
+docs/design/004-domain-model.md
 public/assets/README.md
 ```
 
@@ -105,7 +106,13 @@ The runtime is 3D-cell aware, but the first implemented cell type is a vertical 
 `003-no-curvature-engine.md`:
 
 ```text
-The environment does not compute curvature effects. The only curvature-adjacent runtime rule is the 15 cm forbidden zone around portal junctions.
+The environment does not compute curvature effects. The only curvature-adjacent runtime rule is forbidden-zone and object-footprint safety around portal junctions.
+```
+
+`004-domain-model.md`:
+
+```text
+Use one shared vocabulary for cells, portals, rays, tools, and forbidden zones across code, docs, tests, and LLM prompts.
 ```
 
 ## Exit criteria

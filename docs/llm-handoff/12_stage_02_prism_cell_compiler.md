@@ -80,10 +80,13 @@ For a prism, a portal junction exists at a vertical prism edge if both adjacent 
 Create a forbidden vertical capsule or cylinder with radius:
 
 ```text
-0.15 meters
+forbiddenRadiusMeters = 0.00
+defaultBoundingRadiusMeters = 0.05
 ```
 
-The compiler should expose these zones to movement and tools.
+The compiler should expose these zones to movement and tools. The object
+footprint clearance is applied by collision and placement checks rather than
+baked into the geometric junction itself.
 
 ## Tests to write
 

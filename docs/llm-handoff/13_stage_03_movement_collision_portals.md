@@ -4,7 +4,9 @@
 
 Implement basic first-person movement through compiled prism cells.
 
-The player should move inside a cell, collide with ordinary walls/floor/ceiling, cross portals through their interiors, and never enter the 15 cm forbidden zone around portal junctions.
+The player should move inside a cell, collide with ordinary walls/floor/ceiling,
+cross portals through their interiors, and never intersect the forbidden zone or
+object clearance around portal junctions.
 
 ## Files to create
 
