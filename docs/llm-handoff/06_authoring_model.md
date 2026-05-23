@@ -1,0 +1,129 @@
+# 06 - Authoring model
+
+## Current authoring format
+
+Use TypeScript world specs first.
+
+Do not start with JSON schema, visual editors, QR scanning, or a custom DSL. Those are authoring inputs for later. The first goal is to stabilize the runtime contract.
+
+World specs should be ordinary TypeScript values:
+
+```ts
+export const twoPrismLoop: CellComplexSpec = {
+  id: "two-prism-loop",
+  title: "Two Prism Loop",
+  start: {
+    cell: "room-a",
+    position: [0, 0, 1.45],
+    yawDegrees: 0,
+  },
+  cells: [
+    {
+      kind: "prism",
+      id: "room-a",
+      base: squareBase(4),
+      height: 3,
+      sideFaces: [
+        { edge: "north", kind: "portal", portal: "a-north" },
+        { edge: "east", kind: "wall" },
+        { edge: "south", kind: "wall" },
+        { edge: "west", kind: "wall" }
+      ],
+      decorations: []
+    }
+  ],
+  portals: [
+    {
+      id: "a-north",
+      from: { cell: "room-a", face: "north" },
+      to: { cell: "room-b", face: "south" },
+      orientation: { turnDegrees: 0 }
+    }
+  ]
+};
+```
+
+This example is illustrative, not final API. The exact spec shape should be stabilized during stage 2.
+
+## Authoring priorities
+
+A world author should be able to read one file and understand:
+
+- what cells exist,
+- what shape each cell is,
+- which side faces are walls,
+- which side faces are portals,
+- how portals connect,
+- where the player starts,
+- which tools are enabled,
+- what decorations are present.
+
+Avoid hidden defaults for mathematically meaningful choices. Defaults are acceptable for visual style, lighting, and decoration scale.
+
+## Portal authoring
+
+In the first implementation, portal authoring should avoid arbitrary matrices.
+
+Prefer restricted descriptions:
+
+```ts
+orientation: { turnDegrees: 0 | 90 | 180 | 270 | -90 }
+```
+
+or a named frame match:
+
+```ts
+match: "same-up" | "half-turn" | "quarter-turn-left" | "quarter-turn-right"
+```
+
+The compiler should compute the rigid transform and reject impossible glueings.
+
+An expert matrix escape hatch can be added later, but it should not be the normal path.
+
+## Future compiler step
+
+Later authoring inputs should compile into the same checked `CellComplexSpec` or a closely related JSON-compatible intermediate format.
+
+Future pipeline:
+
+```text
+TypeScript spec
+       or
+JSON spec
+       or
+visual authoring app output
+       or
+QR marker scan output
+  -> authoring validation
+  -> CellComplexSpec
+  -> compileCellComplex(...)
+  -> CompiledCellComplex
+```
+
+The runtime must not care which authoring input produced the spec.
+
+## Future QR marker authoring
+
+The QR idea should be a separate authoring app, not part of the VR runtime.
+
+Possible workflow:
+
+1. Print face cards or edge cards with QR codes.
+2. Each QR code encodes a world id, face id, edge id, and orientation marker.
+3. The authoring app scans two compatible edge markers.
+4. The app records a portal glueing proposal.
+5. The app exports JSON.
+6. The regular authoring validator checks the JSON.
+7. The regular cell-complex compiler builds the runtime world.
+
+A QR code should identify an authoring object. It should not contain arbitrary executable logic.
+
+## What not to do now
+
+Do not implement the QR app in the first implementation.
+
+Do not add camera permissions to the VR app for QR scanning.
+
+Do not create a full visual editor before the runtime works.
+
+Do not support arbitrary malformed glueings in the name of flexibility. The compiler should reject unclear data loudly.
