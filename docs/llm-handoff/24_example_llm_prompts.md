@@ -5,7 +5,7 @@ These prompts are meant for implementation sessions after the human developer ha
 ## Stage 00 prompt
 
 ```text
-Read docs/llm-handoff/00_index.md through 10_stage_00_bootstrap.md. Create the initial Vite TypeScript scaffold with Vitest, strict typecheck, the requested source folders, and scripts/deploy-pages.sh. Do not implement geometry, rendering, movement, or VR. End by running typecheck, test, and build.
+Read docs/llm-handoff/00_index.md and docs/issues/_closed/10_stage_00_bootstrap.md. Create the initial Vite TypeScript scaffold with Vitest, strict typecheck, the requested source folders, and scripts/deploy-pages.sh. Do not implement geometry, rendering, movement, or VR. End by running typecheck, test, and build.
 ```
 
 ## Stage 01 prompt

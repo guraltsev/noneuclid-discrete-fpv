@@ -16,7 +16,7 @@ Read the files in numeric order. Each file is written for an LLM-assisted implem
 8. `07_runtime_contracts.md` - public data contracts the implementation should stabilize early.
 9. `08_testing_strategy.md` - behavior tests, stage gates, and forbidden implementation-locking tests.
 10. `09_llm_workflow.md` - how an LLM should work on this codebase.
-11. `10_stage_00_bootstrap.md` - initial empty project and tooling scaffold.
+11. `../issues/_closed/10_stage_00_bootstrap.md` - closed; initial empty project and tooling scaffold.
 12. `11_stage_01_math_primitives.md` - vectors, transforms, planes, polygons, tolerances.
 13. `12_stage_02_prism_cell_compiler.md` - first implemented cell type and portal validation.
 14. `13_stage_03_movement_collision_portals.md` - player movement, collision, portal crossing, and forbidden zones.

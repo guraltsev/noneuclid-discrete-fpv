@@ -142,3 +142,28 @@ Do not add Three.js rendering.
 Do not add WebXR.
 
 Do not add authoring formats beyond folders and decision notes.
+
+## Closing note
+
+Closed as completed bootstrap work.
+
+The repository now contains the TypeScript/Vite scaffold, configured package
+scripts, Vitest harness, source and documentation folders, public asset folder,
+design notes, and the branch-based GitHub Pages deployment script. Later stages
+have already added cells, movement, rendering, classroom, and authoring code, so
+the current repository is no longer a pure stage-00-only snapshot.
+
+## Evidence for closing
+
+- `package.json` defines `dev`, `typecheck`, `test`, `test:watch`, `build`,
+  `build:pages`, `preview`, and `deploy:pages`.
+- `vite.config.ts` uses `process.env.VITE_BASE ?? "/"` and configures Vitest
+  with the Node environment.
+- `scripts/deploy-pages.sh` builds static output and prepares a `gh-pages`
+  branch deployment with `.nojekyll`.
+- Source folders exist under `src/` for math, cell-complex, movement, tools,
+  render/three, classroom, authoring, and glue.
+- Design notes exist under `docs/design/`.
+- `public/assets/README.md` documents the static asset boundary.
+- `npm.cmd run typecheck`, `npm.cmd run test`, and `npm.cmd run build` passed
+  during closure verification.
