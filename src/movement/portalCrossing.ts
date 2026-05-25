@@ -1,11 +1,11 @@
 import type { PortalSpec } from "../cell-complex/specs";
 import { applyRigidTransform3 } from "../math/rigidTransform3";
-import type { PlayerBody } from "./playerBody";
+import type { PlayerPose } from "./playerPose";
 
-export function crossPortal(player: PlayerBody, portal: PortalSpec): PlayerBody {
+export function crossPortal(pose: PlayerPose, portal: PortalSpec): PlayerPose {
   return {
-    ...player,
+    ...pose,
     cellId: portal.targetCellId,
-    position: applyRigidTransform3(portal.transformToTarget, player.position),
+    position: applyRigidTransform3(portal.transformToTarget, pose.position),
   };
 }
