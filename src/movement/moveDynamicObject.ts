@@ -3,8 +3,9 @@ import type { CompiledPrismSide } from "../cell-complex/prismCells";
 import { rigidTransform3 } from "../math/rigidTransform3";
 import { addVec3, type Vec3 } from "../math/vec3";
 import {
-  projectPointAlongSide,
-  signedDistanceToSide,
+  findBoundaryCrossing,
+  getCollisionBounds,
+  getSideSupport,
   testCellCollision,
   type BlockingReason,
 } from "./collision";
@@ -34,37 +35,32 @@ export function moveDynamicObject(request: MoveDynamicObjectRequest): MoveDynami
   }
 
   const candidateObject = translateObject(request.object, request.displacement);
-  const crossingSide = findPortalCrossingSide(
-    startCell.sides,
-    request.object.localPose.translation,
-    candidateObject.localPose.translation,
-    startCell.heightMeters,
-  );
+  const boundaryCrossing = findBoundaryCrossing(startCell, request.object, candidateObject);
 
-  if (crossingSide?.portal) {
+  if (boundaryCrossing?.side.portal && isPortalCrossingReachable(candidateObject, boundaryCrossing.side, startCell.heightMeters)) {
     const sourceCollision = testCellCollision({
       cell: startCell,
       position: candidateObject.localPose.translation,
       collision: candidateObject.collision,
-      ignoredPortalSideIndex: crossingSide.sideIndex,
+      ignoredPortalSideIndex: boundaryCrossing.side.sideIndex,
     });
 
     if (sourceCollision.blocked) {
       return blockedResult(request, sourceCollision.reason);
     }
 
-    const crossedObject = crossDynamicObjectPortal(candidateObject, crossingSide.portal);
+    const crossedObject = crossDynamicObjectPortal(candidateObject, boundaryCrossing.side.portal);
     const targetCell = request.world.cellsById.get(crossedObject.cellId);
 
     if (!targetCell) {
-      throw new Error(`Portal "${crossingSide.portal.id}" targets missing cell "${crossedObject.cellId}".`);
+      throw new Error(`Portal "${boundaryCrossing.side.portal.id}" targets missing cell "${crossedObject.cellId}".`);
     }
 
     const targetCollision = testCellCollision({
       cell: targetCell,
       position: crossedObject.localPose.translation,
       collision: crossedObject.collision,
-      ignoredPortalSideIndex: targetCell.portalsById.get(crossingSide.portal.targetPortalId)?.sideIndex,
+      ignoredPortalSideIndex: targetCell.portalsById.get(boundaryCrossing.side.portal.targetPortalId)?.sideIndex,
     });
 
     if (targetCollision.blocked) {
@@ -76,7 +72,7 @@ export function moveDynamicObject(request: MoveDynamicObjectRequest): MoveDynami
       attemptedDisplacement: request.displacement,
       blocked: false,
       crossedPortal: true,
-      crossedPortalId: crossingSide.portal.id,
+      crossedPortalId: boundaryCrossing.side.portal.id,
     };
   }
 
@@ -87,7 +83,15 @@ export function moveDynamicObject(request: MoveDynamicObjectRequest): MoveDynami
   });
 
   if (collision.blocked) {
-    return blockedResult(request, collision.reason);
+    const resolvedObject =
+      collision.reason === "wall"
+        ? resolveBlockedWallPosition(
+            candidateObject,
+            boundaryCrossing?.side ?? startCell.sides.find((side) => side.sideIndex === collision.sideIndex),
+          )
+        : request.object;
+
+    return blockedResult(request, collision.reason, resolvedObject);
   }
 
   return {
@@ -101,9 +105,10 @@ export function moveDynamicObject(request: MoveDynamicObjectRequest): MoveDynami
 function blockedResult(
   request: MoveDynamicObjectRequest,
   blockingReason: BlockingReason | undefined,
+  object = request.object,
 ): MoveDynamicObjectResult {
   return {
-    object: request.object,
+    object,
     attemptedDisplacement: request.displacement,
     blocked: true,
     blockingReason,
@@ -121,28 +126,57 @@ function translateObject(object: DynamicObjectState, displacement: Vec3): Dynami
   };
 }
 
-function findPortalCrossingSide(
-  sides: readonly CompiledPrismSide[],
-  start: Vec3,
-  end: Vec3,
+function isPortalCrossingReachable(
+  object: DynamicObjectState,
+  side: CompiledPrismSide,
   heightMeters: number,
-): CompiledPrismSide | undefined {
-  return sides.find((side) => {
-    if (!side.portal) {
-      return false;
-    }
+): boolean {
+  const bounds = getCollisionBounds(object.localPose.translation, object.collision);
+  const point = bounds?.center ?? object.localPose.translation;
+  const support = bounds ? getSideSupport(side, bounds) : 0;
+  const sideProjection = projectPointAlongSideWithBounds(side, point);
 
-    const startDistance = signedDistanceToSide(side, start);
-    const endDistance = signedDistanceToSide(side, end);
-    const sideProjection = projectPointAlongSide(side, end);
+  return (
+    sideProjection >= 0 &&
+    sideProjection <= side.lengthMeters &&
+    point.y - (bounds?.halfY ?? 0) >= 0 &&
+    point.y + (bounds?.halfY ?? 0) <= heightMeters &&
+    getSignedClearanceToSide(side, point, support) < 0
+  );
+}
 
-    return (
-      startDistance >= 0 &&
-      endDistance < 0 &&
-      sideProjection >= 0 &&
-      sideProjection <= side.lengthMeters &&
-      end.y >= 0 &&
-      end.y <= heightMeters
-    );
+function resolveBlockedWallPosition(
+  object: DynamicObjectState,
+  side: CompiledPrismSide | undefined,
+): DynamicObjectState {
+  if (!side) {
+    return object;
+  }
+
+  const bounds = getCollisionBounds(object.localPose.translation, object.collision);
+  const point = bounds?.center ?? object.localPose.translation;
+  const support = bounds ? getSideSupport(side, bounds) : 0;
+  const clearance = getSignedClearanceToSide(side, point, support);
+  const inwardOffset = clearance < 0 ? -clearance + 1e-6 : 0;
+
+  if (inwardOffset === 0) {
+    return object;
+  }
+
+  return translateObject(object, {
+    x: side.inwardNormal.x * inwardOffset,
+    y: 0,
+    z: side.inwardNormal.z * inwardOffset,
   });
+}
+
+function projectPointAlongSideWithBounds(side: CompiledPrismSide, point: Vec3): number {
+  const edgeX = side.end.x - side.start.x;
+  const edgeZ = side.end.z - side.start.z;
+
+  return ((point.x - side.start.x) * edgeX + (point.z - side.start.z) * edgeZ) / side.lengthMeters;
+}
+
+function getSignedClearanceToSide(side: CompiledPrismSide, point: Vec3, support: number): number {
+  return (point.x - side.start.x) * side.inwardNormal.x + (point.z - side.start.z) * side.inwardNormal.z - support;
 }

@@ -1,7 +1,7 @@
 import type { CompiledPrismCell, CompiledPrismSide } from "../cell-complex/prismCells";
 import type { SingularityCollisionColumn } from "../cell-complex/forbiddenZones";
 import type { Vec3 } from "../math/vec3";
-import type { SimpleCollisionBox } from "./dynamicObject";
+import type { DynamicObjectState, SimpleCollisionBox } from "./dynamicObject";
 
 export type BlockingReason = "wall" | "floor" | "ceiling" | "forbidden-zone";
 
@@ -18,25 +18,30 @@ export interface CollisionCandidate {
   readonly ignoredPortalSideIndex?: number;
 }
 
+export interface SimpleBoxBounds {
+  readonly center: Vec3;
+  readonly halfX: number;
+  readonly halfY: number;
+  readonly halfZ: number;
+}
+
+export interface BoundaryCrossing {
+  readonly side: CompiledPrismSide;
+  readonly startClearance: number;
+  readonly endClearance: number;
+  readonly endProjection: number;
+}
+
 const zeroOffset = { x: 0, y: 0, z: 0 };
 
 export function testCellCollision(candidate: CollisionCandidate): CollisionResult {
-  const box = candidate.collision;
+  const bounds = getCollisionBounds(candidate.position, candidate.collision);
 
-  if (!box) {
+  if (!bounds) {
     return { blocked: false };
   }
 
-  const offset = box.offset ?? zeroOffset;
-  const center = {
-    x: candidate.position.x + offset.x,
-    y: candidate.position.y + offset.y,
-    z: candidate.position.z + offset.z,
-  };
-  const halfX = box.dx / 2;
-  const halfY = box.dy / 2;
-  const halfZ = box.dz / 2;
-  const bounds = { center, halfX, halfY, halfZ };
+  const { center, halfY } = bounds;
 
   if (center.y - halfY < 0) {
     return { blocked: true, reason: "floor" };
@@ -58,7 +63,7 @@ export function testCellCollision(candidate: CollisionCandidate): CollisionResul
     }
 
     const distance = signedDistanceToSide(side, center);
-    const support = Math.abs(side.inwardNormal.x) * halfX + Math.abs(side.inwardNormal.z) * halfZ;
+    const support = getSideSupport(side, bounds);
 
     if (distance < support) {
       return { blocked: true, reason: "wall", sideIndex: side.sideIndex };
@@ -68,11 +73,26 @@ export function testCellCollision(candidate: CollisionCandidate): CollisionResul
   return { blocked: false };
 }
 
-interface SimpleBoxBounds {
-  readonly center: Vec3;
-  readonly halfX: number;
-  readonly halfY: number;
-  readonly halfZ: number;
+export function getCollisionBounds(
+  position: Vec3,
+  collision?: SimpleCollisionBox,
+): SimpleBoxBounds | undefined {
+  if (!collision) {
+    return undefined;
+  }
+
+  const offset = collision.offset ?? zeroOffset;
+
+  return {
+    center: {
+      x: position.x + offset.x,
+      y: position.y + offset.y,
+      z: position.z + offset.z,
+    },
+    halfX: collision.dx / 2,
+    halfY: collision.dy / 2,
+    halfZ: collision.dz / 2,
+  };
 }
 
 function simpleBoxIntersectsSingularityColumn(
@@ -105,9 +125,46 @@ export function signedDistanceToSide(side: CompiledPrismSide, point: Vec3): numb
   return (point.x - side.start.x) * side.inwardNormal.x + (point.z - side.start.z) * side.inwardNormal.z;
 }
 
+export function getSideSupport(side: CompiledPrismSide, bounds: SimpleBoxBounds): number {
+  return Math.abs(side.inwardNormal.x) * bounds.halfX + Math.abs(side.inwardNormal.z) * bounds.halfZ;
+}
+
 export function projectPointAlongSide(side: CompiledPrismSide, point: Vec3): number {
   const edgeX = side.end.x - side.start.x;
   const edgeZ = side.end.z - side.start.z;
 
   return ((point.x - side.start.x) * edgeX + (point.z - side.start.z) * edgeZ) / side.lengthMeters;
+}
+
+export function findBoundaryCrossing(
+  cell: CompiledPrismCell,
+  startObject: DynamicObjectState,
+  endObject: DynamicObjectState,
+): BoundaryCrossing | undefined {
+  const startBounds = getCollisionBounds(startObject.localPose.translation, startObject.collision);
+  const endBounds = getCollisionBounds(endObject.localPose.translation, endObject.collision);
+  const startPoint = startBounds?.center ?? startObject.localPose.translation;
+  const endPoint = endBounds?.center ?? endObject.localPose.translation;
+
+  let crossing: BoundaryCrossing | undefined;
+
+  for (const side of cell.sides) {
+    const startSupport = startBounds ? getSideSupport(side, startBounds) : 0;
+    const endSupport = endBounds ? getSideSupport(side, endBounds) : 0;
+    const startClearance = signedDistanceToSide(side, startPoint) - startSupport;
+    const endClearance = signedDistanceToSide(side, endPoint) - endSupport;
+
+    if (startClearance >= 0 && endClearance < 0) {
+      if (!crossing || endClearance < crossing.endClearance) {
+        crossing = {
+          side,
+          startClearance,
+          endClearance,
+          endProjection: projectPointAlongSide(side, endPoint),
+        };
+      }
+    }
+  }
+
+  return crossing;
 }

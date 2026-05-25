@@ -9,6 +9,7 @@ import {
 export interface CompiledPrismCell {
   readonly id: string;
   readonly heightMeters: number;
+  readonly isConvex: true;
   readonly sideCount: number;
   readonly baseVertices: readonly { readonly x: number; readonly z: number }[];
   readonly portals: readonly PortalSpec[];
@@ -72,6 +73,7 @@ export function compilePrismCell(spec: PrismCellSpec): CompiledPrismCell {
   return {
     id: spec.id,
     heightMeters: spec.heightMeters,
+    isConvex: true,
     sideCount: spec.baseVertices.length,
     baseVertices: spec.baseVertices,
     portals: spec.portals,

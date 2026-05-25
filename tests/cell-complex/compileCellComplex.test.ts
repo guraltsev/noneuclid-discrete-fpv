@@ -25,6 +25,7 @@ describe("compileCellComplex", () => {
     const compiled = compileCellComplex(twoPrismLoop);
     const roomA = compiled.cellsById.get("room-a");
 
+    expect(roomA?.isConvex).toBe(true);
     expect(roomA?.portalsById.get("east")?.targetCellId).toBe("room-b");
     expect(roomA?.portalBySideIndex.get(1)?.id).toBe("east");
     expect(roomA?.sides).toHaveLength(4);
@@ -109,5 +110,64 @@ describe("compileCellComplex", () => {
     expect(errors).toContain('Portal "room:bad" has sideIndex 3, expected 0-2.');
     expect(errors).toContain('Portal "room:bad" targets missing cell "missing".');
     expect(errors).toContain('Portal "room:bad" is not reciprocated by "room:bad".');
+  });
+
+  it("rejects non-convex and clockwise prism bases for stage 03 movement", () => {
+    const nonConvexErrors = validateAuthoringSpec({
+      cells: [
+        {
+          id: "non-convex",
+          heightMeters: 2,
+          baseVertices: [
+            { x: 0, z: 0 },
+            { x: 2, z: 0 },
+            { x: 1, z: 1 },
+            { x: 2, z: 2 },
+            { x: 0, z: 2 },
+          ],
+          portals: [],
+        },
+      ],
+    });
+    const clockwiseErrors = validateAuthoringSpec({
+      cells: [
+        {
+          id: "clockwise",
+          heightMeters: 2,
+          baseVertices: [
+            { x: -1, z: -1 },
+            { x: -1, z: 1 },
+            { x: 1, z: 1 },
+            { x: 1, z: -1 },
+          ],
+          portals: [],
+        },
+      ],
+    });
+
+    expect(nonConvexErrors).toContain(
+      'Cell "non-convex" must be strictly convex; non-convex prism cells are not supported in stage 03.',
+    );
+    expect(clockwiseErrors).toContain(
+      'Cell "clockwise" must list baseVertices in counterclockwise order for stage 03 movement.',
+    );
+    expect(() =>
+      compileCellComplex({
+        cells: [
+          {
+            id: "non-convex",
+            heightMeters: 2,
+            baseVertices: [
+              { x: 0, z: 0 },
+              { x: 2, z: 0 },
+              { x: 1, z: 1 },
+              { x: 2, z: 2 },
+              { x: 0, z: 2 },
+            ],
+            portals: [],
+          },
+        ],
+      }),
+    ).toThrowError(/non-convex prism cells are not supported in stage 03/);
   });
 });

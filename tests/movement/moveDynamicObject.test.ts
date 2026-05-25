@@ -24,7 +24,7 @@ describe("moveDynamicObject", () => {
     const blocked = moveDynamicObject({ world, object, displacement: { x: 1, y: 0, z: 0 } });
     expect(blocked.blocked).toBe(true);
     expect(blocked.blockingReason).toBe("wall");
-    expect(blocked.object).toBe(object);
+    expect(blocked.object.localPose.translation.x).toBeCloseTo(0.9, 5);
   });
 
   it("blocks floor and ceiling intersections", () => {
@@ -48,6 +48,31 @@ describe("moveDynamicObject", () => {
     expect(result.object.localPose.translation.x).toBeCloseTo(-0.8);
     expect(result.object.localPose.rotation.m00).toBeCloseTo(0);
     expect(result.object.localPose.rotation.m02).toBeCloseTo(-1);
+  });
+
+  it("crosses a portal when body clearance exits the source cell before the anchor point fully does", () => {
+    const world = compileCellComplex(twoRoomsWithTranslatedPortal());
+    const object = dynamicObject("room-a", { x: 0.75, y: 0.5, z: 0 });
+
+    const result = moveDynamicObject({ world, object, displacement: { x: 0.2, y: 0, z: 0 } });
+
+    expect(result.blocked).toBe(false);
+    expect(result.crossedPortal).toBe(true);
+    expect(result.object.cellId).toBe("room-b");
+    expect(result.object.localPose.translation.x).toBeCloseTo(-0.55);
+  });
+
+  it("resolves blocked non-portal exits back to an in-bounds pose near the wall", () => {
+    const world = compileCellComplex(singleRoom());
+    const object = dynamicObject("room", { x: -0.8, y: 0.5, z: 0 });
+
+    const result = moveDynamicObject({ world, object, displacement: { x: -0.4, y: 0, z: 0 } });
+
+    expect(result.blocked).toBe(true);
+    expect(result.blockingReason).toBe("wall");
+    expect(result.crossedPortal).toBe(false);
+    expect(result.object).not.toBe(object);
+    expect(result.object.localPose.translation.x).toBeCloseTo(-0.9, 5);
   });
 
   it("rejects movement into invisible collision columns at portal junctions", () => {

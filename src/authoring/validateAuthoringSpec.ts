@@ -19,6 +19,12 @@ export function validateAuthoringSpec(spec: CellComplexSpec): readonly string[] 
       errors.push(`Cell "${cell.id}" must have at least 3 base vertices.`);
     }
 
+    const baseValidationError = validatePrismBase(cell.baseVertices);
+
+    if (baseValidationError) {
+      errors.push(`Cell "${cell.id}" ${baseValidationError}`);
+    }
+
     if (cell.heightMeters <= 0) {
       errors.push(`Cell "${cell.id}" must have a positive height.`);
     }
@@ -67,4 +73,49 @@ export function validateAuthoringSpec(spec: CellComplexSpec): readonly string[] 
   }
 
   return errors;
+}
+
+function validatePrismBase(
+  vertices: readonly { readonly x: number; readonly z: number }[],
+): string | undefined {
+  if (vertices.length < 3) {
+    return undefined;
+  }
+
+  let signedAreaTwice = 0;
+
+  for (let index = 0; index < vertices.length; index += 1) {
+    const current = vertices[index];
+    const next = vertices[(index + 1) % vertices.length];
+    signedAreaTwice += current.x * next.z - next.x * current.z;
+  }
+
+  if (signedAreaTwice <= 0) {
+    return "must list baseVertices in counterclockwise order for stage 03 movement.";
+  }
+
+  let sawPositiveTurn = false;
+
+  for (let index = 0; index < vertices.length; index += 1) {
+    const prev = vertices[(index + vertices.length - 1) % vertices.length];
+    const current = vertices[index];
+    const next = vertices[(index + 1) % vertices.length];
+    const edgeAX = current.x - prev.x;
+    const edgeAZ = current.z - prev.z;
+    const edgeBX = next.x - current.x;
+    const edgeBZ = next.z - current.z;
+    const turn = edgeAX * edgeBZ - edgeAZ * edgeBX;
+
+    if (turn <= 0) {
+      return "must be strictly convex; non-convex prism cells are not supported in stage 03.";
+    }
+
+    sawPositiveTurn = true;
+  }
+
+  if (!sawPositiveTurn) {
+    return "must be strictly convex; non-convex prism cells are not supported in stage 03.";
+  }
+
+  return undefined;
 }
