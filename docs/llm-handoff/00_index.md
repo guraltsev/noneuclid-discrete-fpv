@@ -17,10 +17,10 @@ Read the files in numeric order. Each file is written for an LLM-assisted implem
 9. `08_testing_strategy.md` - behavior tests, stage gates, and forbidden implementation-locking tests.
 10. `09_llm_workflow.md` - how an LLM should work on this codebase.
 11. `../issues/_closed/10_stage_00_bootstrap.md` - closed; initial empty project and tooling scaffold.
-12. `11_stage_01_math_primitives.md` - vectors, transforms, planes, polygons, tolerances.
-13. `12_stage_02_prism_cell_compiler.md` - first implemented cell type and portal validation.
-14. `13_stage_03_movement_collision_portals.md` - player movement, collision, portal crossing, and forbidden zones.
-15. `14_stage_04_three_desktop_scene.md` - first visible world with desktop controls.
+12. `../issues/_closed/16_stage_01_math_primitives.md` - closed; vectors, transforms, planes, polygons, tolerances.
+13. `../issues/_closed/17_stage_02_prism_cell_compiler.md` - closed; first implemented cell type and portal validation.
+14. `../issues/_closed/18_stage_03_movement_collision_portals.md` - closed; player movement, collision, portal crossing, and forbidden zones.
+15. `../issues/16_stage_04_renderer_completion.md` - open; finish the remaining stage-04 renderer meshes, debug overlay, and renderer-contract tests after the desktop foundation closed.
 16. `15_stage_05_portal_viewing.md` - one-hop and recursive portal visibility.
 17. `16_stage_06_straight_ray_tool.md` - shoot locally straight rays through portals.
 18. `17_stage_07_environment_tools.md` - markers, path traces, rulers, angle tools, and non-teaching data capture.
