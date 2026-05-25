@@ -1,4 +1,4 @@
 import type { CellComplexSpec } from "../specs";
-import { twoPrismLoop } from "./twoPrismLoop";
+import { torus } from "./torus";
 
-export const prismTorusLikeRoom: CellComplexSpec = twoPrismLoop;
+export const prismTorusLikeRoom: CellComplexSpec = torus;

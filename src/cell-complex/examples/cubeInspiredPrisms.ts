@@ -1,4 +1,4 @@
 import type { CellComplexSpec } from "../specs";
-import { twoPrismLoop } from "./twoPrismLoop";
+import { cube } from "./cube";
 
-export const cubeInspiredPrisms: CellComplexSpec = twoPrismLoop;
+export const cubeInspiredPrisms: CellComplexSpec = cube;

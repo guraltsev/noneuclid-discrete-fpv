@@ -1,1 +1,3 @@
-export const defaultGeometryToleranceMeters = 1e-7;
+export const geometryTolerance = 1e-8;
+
+export const defaultGeometryToleranceMeters = geometryTolerance;
