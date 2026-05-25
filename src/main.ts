@@ -1,4 +1,5 @@
 import { compileCellComplex } from "./cell-complex/compileCellComplex";
+import { describeGeometrySpec } from "./cell-complex/describeGeometry";
 import { createInitialAppState } from "./appState";
 import { loadGeometrySpec, readGeometrySelectionOptions, renderGeometryPicker } from "./geometrySelection";
 import { createThreeApp } from "./render/three/createThreeApp";
@@ -15,6 +16,7 @@ void startApp(appElement);
 async function startApp(container: HTMLDivElement): Promise<void> {
   const geometryOptions = readGeometrySelectionOptions(window.location);
   const geometrySpec = await loadGeometrySpec(geometryOptions.selectedGeometryId);
+  console.info(describeGeometrySpec(geometrySpec));
   const world = compileCellComplex(geometrySpec);
   const appState = createInitialAppState(world);
 

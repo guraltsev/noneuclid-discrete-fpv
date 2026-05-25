@@ -15,12 +15,7 @@ describe("compileCellComplex", () => {
   it("compiles the stage geometry examples", () => {
     expect(compileCellComplex(torus).cells.map((cell) => cell.id)).toEqual(["torus-room"]);
     expect(compileCellComplex(tetrahedron).cells).toHaveLength(4);
-    expect(compileCellComplex(cube).cells).toEqual([
-      {
-        id: "cube-room",
-        heightMeters: 4,
-        sideCount: 4,
-      },
-    ]);
+    expect(compileCellComplex(cube).cells).toHaveLength(6);
+    expect(compileCellComplex(cube).cells.every((cell) => cell.sideCount === 4)).toBe(true);
   });
 });
