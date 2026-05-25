@@ -6,6 +6,8 @@ Create the minimal math primitives needed for cells, portals, collision, and ray
 
 This stage should be independent of Three.js.
 
+Supporting design guide: `../design/005-stage-01-math-primitives-guide.md`.
+
 ## Files to create
 
 ```text
