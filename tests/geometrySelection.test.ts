@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { readGeometrySelectionOptions } from "../src/geometrySelection";
+import { readLaunchOptions } from "../src/glue/readLaunchOptions";
 
-describe("geometrySelection", () => {
+describe("readLaunchOptions", () => {
   it("reads debug as an integer URL option", () => {
-    const location = new URL("https://example.test/?geometry=cube&debug=75") as unknown as Location;
+    const location = new URL("https://example.test/?world=cube&debug=75") as unknown as Location;
 
-    expect(readGeometrySelectionOptions(location)).toMatchObject({
-      selectedGeometryId: "cube",
+    expect(readLaunchOptions(location)).toMatchObject({
+      selectedWorldId: "cube",
       debugLevel: 75,
     });
   });

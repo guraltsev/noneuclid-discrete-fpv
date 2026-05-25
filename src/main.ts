@@ -1,7 +1,9 @@
 import { compileCellComplex } from "./cell-complex/compileCellComplex";
 import { describeGeometrySpec } from "./cell-complex/describeGeometry";
 import { createInitialAppState } from "./appState";
-import { loadGeometrySpec, readGeometrySelectionOptions, renderGeometryPicker } from "./geometrySelection";
+import { loadWorldSpec } from "./authoring/worldCatalog";
+import { readLaunchOptions } from "./glue/readLaunchOptions";
+import { renderWorldPicker } from "./glue/renderWorldPicker";
 import { createThreeApp } from "./render/three/createThreeApp";
 import "./style.css";
 
@@ -14,15 +16,15 @@ if (!appElement) {
 void startApp(appElement);
 
 async function startApp(container: HTMLDivElement): Promise<void> {
-  const geometryOptions = readGeometrySelectionOptions(window.location);
-  const geometrySpec = await loadGeometrySpec(geometryOptions.selectedGeometryId);
+  const launchOptions = readLaunchOptions(window.location);
+  const geometrySpec = await loadWorldSpec(launchOptions.selectedWorldId);
   console.info(describeGeometrySpec(geometrySpec));
   const world = compileCellComplex(geometrySpec);
   const appState = createInitialAppState(world);
 
-  if (geometryOptions.renderPicker) {
-    renderGeometryPicker(document.body, geometryOptions.selectedGeometryId);
+  if (launchOptions.renderWorldPicker) {
+    renderWorldPicker(document.body, launchOptions.selectedWorldId);
   }
 
-  createThreeApp(container, appState, { debugLevel: geometryOptions.debugLevel });
+  createThreeApp(container, appState, { debugLevel: launchOptions.debugLevel });
 }
