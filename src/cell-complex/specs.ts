@@ -32,6 +32,7 @@ export interface PositionedCellObjectSpec {
   readonly id: string;
   readonly position: { readonly x: number; readonly y: number; readonly z: number };
   readonly scale?: number;
+  readonly scaleXYZ?: { readonly x: number; readonly y: number; readonly z: number };
   readonly yawRadians?: number;
 }
 

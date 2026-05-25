@@ -3,8 +3,8 @@ import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
 import type { CompiledCellComplex } from "../../src/cell-complex/compileCellComplex";
 import type { CellComplexSpec } from "../../src/cell-complex/specs";
 import { identityMat3, yawRigidTransform3 } from "../../src/math/rigidTransform3";
-import { cube } from "../../src/cell-complex/examples/cube";
-import { tetrahedron } from "../../src/cell-complex/examples/tetrahedron";
+import { cube } from "../../src/examples/cube";
+import { tetrahedron } from "../../src/examples/tetrahedron";
 import { vec3 } from "../../src/math/vec3";
 import { moveDynamicObject } from "../../src/movement/moveDynamicObject";
 import { simpleCollisionBox, type DynamicObjectState } from "../../src/movement/dynamicObject";
@@ -117,7 +117,7 @@ describe("moveDynamicObject", () => {
 
   it("crosses a compiled tetrahedron portal without authored transforms", () => {
     const world = compileCellComplex(tetrahedron);
-    const approach = portalApproach(world, "face-a", "edge-0");
+    const approach = portalApproach(world, "face-a", "edge-0-1");
     const object = dynamicObject("face-a", approach.start, identityMat3, simpleCollisionBox(0.05, 1, 0.05));
 
     const result = moveDynamicObject({ world, object, displacement: approach.displacement });

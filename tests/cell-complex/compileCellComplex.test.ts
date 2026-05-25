@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
-import { cube } from "../../src/cell-complex/examples/cube";
-import { tetrahedron } from "../../src/cell-complex/examples/tetrahedron";
-import { torus } from "../../src/cell-complex/examples/torus";
-import { twoPrismLoop } from "../../src/cell-complex/examples/twoPrismLoop";
+import { cube } from "../../src/examples/cube";
+import { tetrahedron } from "../../src/examples/tetrahedron";
+import { torus } from "../../src/examples/torus";
+import { twoPrismLoop } from "../../src/examples/twoPrismLoop";
 import { validateAuthoringSpec } from "../../src/authoring/validateAuthoringSpec";
 import {
   composeRigidTransform3,
@@ -37,11 +37,11 @@ describe("compileCellComplex", () => {
   it("compiles portal lookups, side geometry, and forbidden zones for movement", () => {
     const compiled = compileCellComplex(twoPrismLoop);
     const roomA = compiled.cellsById.get("room-a");
-    const eastPortal = roomA?.portalsById.get("east");
+    const eastPortal = roomA?.portalBySideIndex.get(1);
 
     expect(roomA?.isConvex).toBe(true);
     expect(eastPortal?.targetCellId).toBe("room-b");
-    expect(roomA?.portalBySideIndex.get(1)?.id).toBe("east");
+    expect(roomA?.portalBySideIndex.get(1)?.id).toBe("edge-1-2");
     expect(roomA?.sides).toHaveLength(4);
     expect(eastPortal?.transformToTarget.rotation).toEqual(identityMat3);
     expect(eastPortal?.transformToTarget.translation).toEqual({ x: -15, y: 0, z: 0 });
@@ -58,10 +58,10 @@ describe("compileCellComplex", () => {
     const compiled = compileCellComplex(torus);
     const room = compiled.cellsById.get("torus-room");
 
-    expect(room?.portalsById.get("south")?.transformToTarget.translation).toEqual({ x: 0, y: 0, z: 15 });
-    expect(room?.portalsById.get("east")?.transformToTarget.translation).toEqual({ x: -15, y: 0, z: 0 });
-    expect(room?.portalsById.get("north")?.transformToTarget.translation).toEqual({ x: 0, y: 0, z: -15 });
-    expect(room?.portalsById.get("west")?.transformToTarget.translation).toEqual({ x: 15, y: 0, z: 0 });
+    expect(room?.portalBySideIndex.get(0)?.transformToTarget.translation).toEqual({ x: 0, y: 0, z: 15 });
+    expect(room?.portalBySideIndex.get(1)?.transformToTarget.translation).toEqual({ x: -15, y: 0, z: 0 });
+    expect(room?.portalBySideIndex.get(2)?.transformToTarget.translation).toEqual({ x: 0, y: 0, z: -15 });
+    expect(room?.portalBySideIndex.get(3)?.transformToTarget.translation).toEqual({ x: 15, y: 0, z: 0 });
   });
 
   it("derives seam-consistent compiled transforms for every example portal", () => {

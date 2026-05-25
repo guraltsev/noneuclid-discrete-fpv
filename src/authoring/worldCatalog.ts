@@ -1,8 +1,8 @@
 import type { CellComplexSpec } from "../cell-complex/specs";
-import { cube } from "../cell-complex/examples/cube";
-import { tetrahedron } from "../cell-complex/examples/tetrahedron";
-import { torus } from "../cell-complex/examples/torus";
-import { twoPrismLoop } from "../cell-complex/examples/twoPrismLoop";
+import { cube } from "../examples/cube";
+import { tetrahedron } from "../examples/tetrahedron";
+import { torus } from "../examples/torus";
+import { twoPrismLoop } from "../examples/twoPrismLoop";
 
 export interface WorldCatalogEntry {
   readonly id: string;
@@ -49,7 +49,7 @@ export function normalizeWorldId(rawValue: string | null | undefined): string | 
   }
 
   const fileName = rawValue.split(/[\\/]/).pop() ?? rawValue;
-  return fileName.replace(/\.ts$/, "");
+  return fileName.replace(/(\.world)?\.js$/, "").replace(/\.ts$/, "");
 }
 
 function findWorldCatalogRecord(worldId: string): WorldCatalogRecord | undefined {

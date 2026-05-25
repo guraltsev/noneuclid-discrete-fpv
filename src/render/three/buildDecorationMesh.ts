@@ -19,8 +19,12 @@ function buildStaticAssetMesh(objectSpec: AssetObjectSpec): THREE.Object3D {
   group.position.set(objectSpec.position.x, objectSpec.position.y, objectSpec.position.z);
   group.rotation.y = objectSpec.yawRadians ?? 0;
 
-  const scale = objectSpec.scale ?? 1;
-  group.scale.setScalar(scale);
+  if (objectSpec.scaleXYZ) {
+    group.scale.set(objectSpec.scaleXYZ.x, objectSpec.scaleXYZ.y, objectSpec.scaleXYZ.z);
+  } else {
+    const scale = objectSpec.scale ?? 1;
+    group.scale.setScalar(scale);
+  }
 
   const placeholder = new THREE.Mesh(
     new THREE.BoxGeometry(0.6, 0.6, 0.6),
