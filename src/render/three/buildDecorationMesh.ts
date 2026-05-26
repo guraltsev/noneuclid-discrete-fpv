@@ -3,6 +3,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AssetObjectSpec, CellObjectSpec } from "../../cell-complex/specs";
 import { publicAssetUrl } from "../../glue/assetUrls";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
+import { requestSceneWarmup } from "./sceneWarmup";
 
 const gltfLoader = new GLTFLoader();
 
@@ -48,6 +49,7 @@ function buildStaticAssetMesh(cellId: string, objectSpec: AssetObjectSpec): THRE
       disposeObject3D(placeholder);
       gltf.scene.name = `asset:${objectSpec.id}`;
       group.add(gltf.scene);
+      requestSceneWarmup(`static-asset:${cellId}/${objectSpec.id}`);
       diagnostics.recordAssetInstanceComplete(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
     },
     undefined,

@@ -48,6 +48,7 @@ interface RuntimeDiagnosticsApi {
   recordAssetInstanceComplete(cellId: string, objectId: string, assetPath: string, kind: string): void;
   recordAssetInstanceError(cellId: string, objectId: string, assetPath: string, kind: string, error?: unknown): void;
   recordCellEntered(fromCellId: string, toCellId: string, portalId: string): void;
+  recordWarmup(reason: string, durationMs: number): void;
   recordFrame(
     cellId: string,
     timings: {
@@ -75,6 +76,7 @@ const noopDiagnostics: RuntimeDiagnosticsApi = {
   recordAssetInstanceComplete() {},
   recordAssetInstanceError() {},
   recordCellEntered() {},
+  recordWarmup() {},
   recordFrame() {},
   snapshot() {
     return {
@@ -329,6 +331,9 @@ export function installRuntimeDiagnostics(world: CompiledCellComplex, enabled: b
         `${firstEntry ? "first" : "repeat"} portal entry ${fromCellId} -> ${toCellId} via ${portalId}`,
         summarizeCellAssets(toCellId),
       );
+    },
+    recordWarmup(reason, durationMs) {
+      recordEvent(`scene warmup ${reason} in ${durationMs.toFixed(1)}ms`);
     },
     recordFrame(cellId, timings) {
       if (timings.totalMs < 120 && timings.renderMs < 80) {

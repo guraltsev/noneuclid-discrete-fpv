@@ -14,6 +14,7 @@ import { buildCellMesh } from "./buildCellMesh";
 import { createDesktopControls } from "./desktopControls";
 import { prerenderCells } from "./prerenderCells";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
+import { installSceneWarmup } from "./sceneWarmup";
 
 export interface ThreeApp {
   readonly scene: THREE.Scene;
@@ -74,6 +75,41 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       marmotRuntimes.push(runtime);
     }
   }
+
+  let scheduledWarmupReason: string | undefined;
+  let warmupTimerId: number | undefined;
+
+  installSceneWarmup({
+    request(reason) {
+      scheduledWarmupReason = scheduledWarmupReason ? `${scheduledWarmupReason}, ${reason}` : reason;
+
+      if (warmupTimerId !== undefined) {
+        return;
+      }
+
+      warmupTimerId = window.setTimeout(() => {
+        warmupTimerId = undefined;
+        const reasonText = scheduledWarmupReason ?? "unknown";
+        scheduledWarmupReason = undefined;
+        const startMs = performance.now();
+        applyCameraPose();
+        prerenderCells({
+          renderer,
+          scene,
+          camera,
+          cellMeshes,
+          activeCellId: playerPose.cellId,
+        });
+        diagnostics.recordWarmup(reasonText, performance.now() - startMs);
+      }, 0);
+    },
+    dispose() {
+      if (warmupTimerId !== undefined) {
+        window.clearTimeout(warmupTimerId);
+        warmupTimerId = undefined;
+      }
+    },
+  });
 
   function applyCameraPose(): void {
     camera.position.set(
@@ -175,6 +211,10 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     scene,
     renderer,
     dispose() {
+      installSceneWarmup({
+        request() {},
+        dispose() {},
+      });
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", onResize);
       controls.dispose();

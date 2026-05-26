@@ -8,6 +8,7 @@ import { vec3 } from "../math/vec3";
 import type { DynamicObjectState } from "../movement/dynamicObject";
 import { moveDynamicObject } from "../movement/moveDynamicObject";
 import { runtimeDiagnostics } from "../render/three/runtimeDiagnostics";
+import { requestSceneWarmup } from "../render/three/sceneWarmup";
 
 const gltfLoader = new GLTFLoader();
 const defaultCollisionOffset = { x: 0, y: 0.22, z: 0 } as const;
@@ -96,6 +97,7 @@ export function createGeodesciMarmotRuntime(
         mixer.clipAction(clip).play();
       }
 
+      requestSceneWarmup(`marmot:${startCellId}/${objectSpec.id}`);
       diagnostics.recordAssetInstanceComplete(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
     },
     undefined,
