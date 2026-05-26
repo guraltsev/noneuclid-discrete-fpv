@@ -2,10 +2,12 @@ import { compileCellComplex } from "./cell-complex/compileCellComplex";
 import { describeGeometrySpec } from "./cell-complex/describeGeometry";
 import { createInitialAppState } from "./appState";
 import { loadWorldSpec } from "./authoring/worldCatalog";
+import { hasDebugOption } from "./glue/debugOptions";
 import { readLaunchOptions } from "./glue/readLaunchOptions";
-import { renderWorldPicker } from "./glue/renderWorldPicker";
+import { renderLaunchControls } from "./glue/renderLaunchControls";
 import { createThreeApp } from "./render/three/createThreeApp";
 import { preloadWorldAssets } from "./render/three/preloadWorldAssets";
+import { installRuntimeDiagnostics } from "./render/three/runtimeDiagnostics";
 import "./style.css";
 
 const appElement = document.querySelector<HTMLDivElement>("#app");
@@ -21,12 +23,13 @@ async function startApp(container: HTMLDivElement): Promise<void> {
   const geometrySpec = await loadWorldSpec(launchOptions.selectedWorldId);
   console.info(describeGeometrySpec(geometrySpec));
   const world = compileCellComplex(geometrySpec);
+  installRuntimeDiagnostics(world, hasDebugOption(launchOptions.debugOptions, "runtime-diagnostics"));
   await preloadWorldAssets(world);
   const appState = createInitialAppState(world);
 
-  if (launchOptions.renderWorldPicker) {
-    renderWorldPicker(document.body, launchOptions.selectedWorldId);
+  if (launchOptions.renderWorldPicker || launchOptions.debugEnabled) {
+    renderLaunchControls(document.body, launchOptions);
   }
 
-  createThreeApp(container, appState, { debugLevel: launchOptions.debugLevel });
+  createThreeApp(container, appState, { debugOptions: launchOptions.debugOptions });
 }

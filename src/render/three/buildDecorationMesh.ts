@@ -2,22 +2,24 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AssetObjectSpec, CellObjectSpec } from "../../cell-complex/specs";
 import { publicAssetUrl } from "../../glue/assetUrls";
+import { runtimeDiagnostics } from "./runtimeDiagnostics";
 
 const gltfLoader = new GLTFLoader();
 
-export function buildDecorationMesh(objectSpec: CellObjectSpec): THREE.Object3D {
+export function buildDecorationMesh(cellId: string, objectSpec: CellObjectSpec): THREE.Object3D {
   if (objectSpec.kind !== "asset") {
     throw new Error(`Cannot build static decoration mesh for object kind "${objectSpec.kind}".`);
   }
 
-  return buildStaticAssetMesh(objectSpec);
+  return buildStaticAssetMesh(cellId, objectSpec);
 }
 
-function buildStaticAssetMesh(objectSpec: AssetObjectSpec): THREE.Object3D {
+function buildStaticAssetMesh(cellId: string, objectSpec: AssetObjectSpec): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `decoration:${objectSpec.id}`;
   group.position.set(objectSpec.position.x, objectSpec.position.y, objectSpec.position.z);
   group.rotation.y = objectSpec.yawRadians ?? 0;
+  const diagnostics = runtimeDiagnostics();
 
   if (objectSpec.scaleXYZ) {
     group.scale.set(objectSpec.scaleXYZ.x, objectSpec.scaleXYZ.y, objectSpec.scaleXYZ.z);
@@ -38,6 +40,7 @@ function buildStaticAssetMesh(objectSpec: AssetObjectSpec): THREE.Object3D {
     return group;
   }
 
+  diagnostics.recordAssetInstanceStart(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
   gltfLoader.load(
     publicAssetUrl(objectSpec.assetPath),
     (gltf) => {
@@ -45,10 +48,12 @@ function buildStaticAssetMesh(objectSpec: AssetObjectSpec): THREE.Object3D {
       disposeObject3D(placeholder);
       gltf.scene.name = `asset:${objectSpec.id}`;
       group.add(gltf.scene);
+      diagnostics.recordAssetInstanceComplete(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
     },
     undefined,
-    () => {
+    (error) => {
       placeholder.name = `missing-asset:${objectSpec.id}`;
+      diagnostics.recordAssetInstanceError(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind, error);
     },
   );
 

@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import type { CompiledPrismCell } from "../../cell-complex/prismCells";
+import { hasDebugOption, type DebugOptionId } from "../../glue/debugOptions";
 import { buildDecorationMesh } from "./buildDecorationMesh";
 import { buildPortalMesh, WALL_HEIGHT_METERS } from "./buildPortalMesh";
 import { isGeodesciMarmotObjectSpec } from "../../world-objects/geodesciMarmot";
 
 export interface BuildCellMeshOptions {
-  readonly debugLevel: number;
+  readonly debugOptions: readonly DebugOptionId[];
   readonly eyeHeightMeters: number;
   readonly cellSideCounts: ReadonlyMap<string, number>;
 }
@@ -28,7 +29,7 @@ export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOpt
   group.add(buildSideWalls(cell));
   group.add(buildFloorOutline(cell));
 
-  if (options.debugLevel > 50) {
+  if (hasDebugOption(options.debugOptions, "portal-panels")) {
     group.add(buildPortalDebugPanels(cell, options));
   }
 
@@ -37,7 +38,7 @@ export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOpt
       continue;
     }
 
-    group.add(buildDecorationMesh(objectSpec));
+    group.add(buildDecorationMesh(cell.id, objectSpec));
   }
 
   return group;

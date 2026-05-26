@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { AppState } from "../../appState";
+import type { DebugOptionId } from "../../glue/debugOptions";
 import { publicAssetUrl } from "../../glue/assetUrls";
 import { movePlayer } from "../../movement/movePlayer";
 import { DEFAULT_PLAYER_EYE_HEIGHT_METERS } from "../../movement/playerBody";
@@ -12,6 +13,7 @@ import {
 import { buildCellMesh } from "./buildCellMesh";
 import { createDesktopControls } from "./desktopControls";
 import { prerenderCells } from "./prerenderCells";
+import { runtimeDiagnostics } from "./runtimeDiagnostics";
 
 export interface ThreeApp {
   readonly scene: THREE.Scene;
@@ -20,7 +22,7 @@ export interface ThreeApp {
 }
 
 export interface ThreeAppOptions {
-  readonly debugLevel: number;
+  readonly debugOptions: readonly DebugOptionId[];
 }
 
 export function createThreeApp(container: HTMLElement, appState: AppState, options: ThreeAppOptions): ThreeApp {
@@ -37,6 +39,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   container.append(renderer.domElement);
   const controls = createDesktopControls(renderer.domElement);
   const clock = new THREE.Clock();
+  const diagnostics = runtimeDiagnostics();
   let animationFrameId = 0;
   let playerPose = appState.playerPose;
 
@@ -53,7 +56,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
 
   for (const cell of appState.world.cells) {
     const cellMesh = buildCellMesh(cell, {
-      debugLevel: options.debugLevel,
+      debugOptions: options.debugOptions,
       eyeHeightMeters: DEFAULT_PLAYER_EYE_HEIGHT_METERS,
       cellSideCounts,
     });
@@ -110,8 +113,18 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   }
 
   function renderFrame(): void {
+    const frameStartMs = performance.now();
     const deltaSeconds = clock.getDelta();
     const frame = controls.consumeFrame(deltaSeconds);
+    const frameBeforeMoveMs = performance.now();
+    const previousCellId = playerPose.cellId;
+    let moveResult:
+      | {
+          readonly pose: typeof playerPose;
+          readonly crossedPortal: boolean;
+          readonly crossedPortalId?: string;
+        }
+      | undefined;
 
     if (frame.resetRequested) {
       playerPose = createDefaultPlayerPose(appState.playerPose.cellId);
@@ -119,7 +132,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         runtime.reset(cellMeshes);
       }
     } else {
-      playerPose = movePlayer({
+      moveResult = movePlayer({
         world: appState.world,
         pose: playerPose,
         body: appState.playerBody,
@@ -127,7 +140,13 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         yawDeltaRadians: frame.yawDeltaRadians,
         pitchDeltaRadians: frame.pitchDeltaRadians,
         coordinateFrame: "global",
-      }).pose;
+      });
+      playerPose = moveResult.pose;
+    }
+    const frameAfterMoveMs = performance.now();
+
+    if (moveResult?.crossedPortal && playerPose.cellId !== previousCellId) {
+      diagnostics.recordCellEntered(previousCellId, playerPose.cellId, moveResult.crossedPortalId ?? "unknown-portal");
     }
 
     for (const runtime of marmotRuntimes) {
@@ -137,7 +156,14 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
 
     updateVisibleCell();
     applyCameraPose();
+    const frameBeforeRenderMs = performance.now();
     renderer.render(scene, camera);
+    const frameAfterRenderMs = performance.now();
+    diagnostics.recordFrame(playerPose.cellId, {
+      totalMs: frameAfterRenderMs - frameStartMs,
+      moveMs: frameAfterMoveMs - frameBeforeMoveMs,
+      renderMs: frameAfterRenderMs - frameBeforeRenderMs,
+    });
     animationFrameId = window.requestAnimationFrame(renderFrame);
   }
 

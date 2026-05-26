@@ -17,7 +17,7 @@ describe("buildCellMesh", () => {
     expect(roomA.portalBySideIndex.get(1)?.id).toBe("edge-1-2");
 
     const mesh = buildCellMesh(roomA, {
-      debugLevel: 0,
+      debugOptions: [],
       eyeHeightMeters: 1.6,
       cellSideCounts: new Map(compiled.cells.map((compiledCell) => [compiledCell.id, compiledCell.sideCount])),
     });

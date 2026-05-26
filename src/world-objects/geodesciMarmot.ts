@@ -7,6 +7,7 @@ import { yawRigidTransform3, transformDirection3, type RigidTransform3 } from ".
 import { vec3 } from "../math/vec3";
 import type { DynamicObjectState } from "../movement/dynamicObject";
 import { moveDynamicObject } from "../movement/moveDynamicObject";
+import { runtimeDiagnostics } from "../render/three/runtimeDiagnostics";
 
 const gltfLoader = new GLTFLoader();
 const defaultCollisionOffset = { x: 0, y: 0.22, z: 0 } as const;
@@ -75,7 +76,9 @@ export function createGeodesciMarmotRuntime(
   const initialState = createDynamicObjectState(objectSpec, startCellId);
   let state = initialState;
   const forwardSpeedMetersPerSecond = Math.hypot(objectSpec.velocity.x, objectSpec.velocity.z);
+  const diagnostics = runtimeDiagnostics();
 
+  diagnostics.recordAssetInstanceStart(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
   gltfLoader.load(
     publicAssetUrl(objectSpec.assetPath),
     (gltf) => {
@@ -92,10 +95,13 @@ export function createGeodesciMarmotRuntime(
           gltf.animations.find((candidate) => candidate.name === objectSpec.animationClipName) ?? gltf.animations[0];
         mixer.clipAction(clip).play();
       }
+
+      diagnostics.recordAssetInstanceComplete(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
     },
     undefined,
-    () => {
+    (error) => {
       placeholder.name = `missing-asset:${objectSpec.id}`;
+      diagnostics.recordAssetInstanceError(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind, error);
     },
   );
 
