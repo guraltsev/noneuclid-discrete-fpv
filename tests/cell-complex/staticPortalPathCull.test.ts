@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
+import { checkPortalPathString } from "../../src/cell-complex/portalPathDebug";
 import { buildPortalPathTables, createPortalPathTable, type PortalPathTablesByRootCell } from "../../src/cell-complex/portalPaths";
 import { staticallyCullPortalPathTables } from "../../src/cell-complex/staticPortalPathCull";
 import { cube, twoPrismLoop } from "../../src/authoring/exampleWorlds";
@@ -8,7 +9,7 @@ import { identityMat3, invertRigidTransform3, type RigidTransform3 } from "../..
 describe("staticallyCullPortalPathTables", () => {
   it("keeps depth-0 paths and preserves kept path ids", () => {
     const world = compileCellComplex(twoPrismLoop);
-    const candidates = buildPortalPathTables(world, { maxDepth: 2, skipImmediateReverse: false });
+    const candidates = buildPortalPathTables(world, { maxDepth: 1, skipImmediateReverse: false });
     const result = staticallyCullPortalPathTables(world, candidates, { toleranceMeters: 1e-6 });
     const kept = result.tables.tablesByRootCellId.get("room-a")!;
 
@@ -16,9 +17,9 @@ describe("staticallyCullPortalPathTables", () => {
     expect(kept.paths.map((path) => path.id)).toEqual(candidates.tablesByRootCellId.get("room-a")?.paths.map((path) => path.id));
   });
 
-  it("keeps ambiguous bounds in the conservative no-geometry pass", () => {
+  it("keeps one-hop cube bounds that cross the portal plane", () => {
     const world = compileCellComplex(cube);
-    const candidates = buildPortalPathTables(world, { maxDepth: 2 });
+    const candidates = buildPortalPathTables(world, { maxDepth: 1 });
     const result = staticallyCullPortalPathTables(world, candidates, { toleranceMeters: 1e-6 });
     const summary = result.summariesByRootCellId.get("front")!;
 
@@ -73,6 +74,54 @@ describe("staticallyCullPortalPathTables", () => {
     ]);
   });
 
+  it("rejects cube paths that only touch an ancestor portal plane from behind", () => {
+    const world = compileCellComplex(cube);
+    const candidates = buildPortalPathTables(world, { maxDepth: 3 });
+    const result = staticallyCullPortalPathTables(world, candidates, {
+      toleranceMeters: 1e-6,
+      keepRejectedPathDetails: true,
+    });
+    const pathCheck = checkPortalPathString("0 3 1", {
+      world,
+      rootCellId: "front",
+      candidateTables: candidates,
+      keptTables: result.tables,
+      cullSummariesByRootCellId: result.summariesByRootCellId,
+    });
+    const validEdgePathCheck = checkPortalPathString("0 3", {
+      world,
+      rootCellId: "front",
+      candidateTables: candidates,
+      keptTables: result.tables,
+      cullSummariesByRootCellId: result.summariesByRootCellId,
+    });
+    const validCornerPathCheck = checkPortalPathString("0 3 2", {
+      world,
+      rootCellId: "front",
+      candidateTables: candidates,
+      keptTables: result.tables,
+      cullSummariesByRootCellId: result.summariesByRootCellId,
+    });
+
+    expect(validEdgePathCheck).toMatchObject({
+      valid: true,
+      existsInBuiltTable: true,
+      survivedStaticCull: true,
+    });
+    expect(validCornerPathCheck).toMatchObject({
+      valid: true,
+      existsInBuiltTable: true,
+      survivedStaticCull: true,
+    });
+
+    expect(pathCheck).toMatchObject({
+      valid: true,
+      existsInBuiltTable: true,
+      survivedStaticCull: false,
+      rejectionReason: "outside-ancestor-portal-plane",
+    });
+  });
+
   it("returns well-formed summaries and tables when no paths are rejected", () => {
     const world = compileCellComplex(twoPrismLoop);
     const candidates = buildPortalPathTables(world, { maxDepth: 0 });
@@ -97,7 +146,7 @@ describe("staticallyCullPortalPathTables", () => {
 
   it("reports static path budget rejections instead of silently truncating", () => {
     const world = compileCellComplex(cube);
-    const candidates = buildPortalPathTables(world, { maxDepth: 2 });
+    const candidates = buildPortalPathTables(world, { maxDepth: 1 });
     const result = staticallyCullPortalPathTables(world, candidates, {
       toleranceMeters: 1e-6,
       maxKeptPathsPerRoot: 2,

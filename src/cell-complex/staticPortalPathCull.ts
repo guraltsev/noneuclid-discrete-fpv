@@ -13,7 +13,7 @@ import {
   transformPoint3,
   type RigidTransform3,
 } from "../math/rigidTransform3";
-import { dotVec3, normalizeVec3, vec3, type Vec3 } from "../math/vec3";
+import { vec3, type Vec3 } from "../math/vec3";
 
 export interface StaticPortalPathCullOptions {
   readonly toleranceMeters: number;
@@ -164,32 +164,15 @@ function rejectAgainstPortalAperture(
   includeDetails: boolean | undefined,
 ): RejectedPortalRenderPath | undefined {
   const sideStart = vec3(side.start.x, side.start.y, 0);
-  const sideEnd = vec3(side.end.x, side.end.y, 0);
-  const tangent = normalizeVec3(vec3(sideEnd.x - sideStart.x, sideEnd.y - sideStart.y, 0));
-  const lengthMeters = Math.hypot(sideEnd.x - sideStart.x, sideEnd.y - sideStart.y);
   const inwardNormal = vec3(side.inwardNormal.x, side.inwardNormal.y, 0);
   const planeDistances = boundInSource.map((point) =>
     (point.x - sideStart.x) * inwardNormal.x + (point.y - sideStart.y) * inwardNormal.y,
   );
 
-  if (planeDistances.every((distance) => distance > toleranceMeters)) {
+  if (planeDistances.every((distance) => distance > -toleranceMeters)) {
     return createGeometricRejection(
       pathId,
       "outside-ancestor-portal-plane",
-      includeDetails,
-      `${sourceCellId}:side-${side.sideIndex}`,
-    );
-  }
-
-  const slabCoordinates = boundInSource.map((point) => dotVec3(vec3(point.x - sideStart.x, point.y - sideStart.y, 0), tangent));
-
-  if (
-    slabCoordinates.every((coordinate) => coordinate < -toleranceMeters) ||
-    slabCoordinates.every((coordinate) => coordinate > lengthMeters + toleranceMeters)
-  ) {
-    return createGeometricRejection(
-      pathId,
-      "outside-ancestor-portal-slab",
       includeDetails,
       `${sourceCellId}:side-${side.sideIndex}`,
     );
