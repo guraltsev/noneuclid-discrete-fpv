@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
-import { twoPrismLoop } from "../../src/authoring/exampleWorlds";
+import { dodecahedron, twoPrismLoop } from "../../src/authoring/exampleWorlds";
 import { buildCellMesh } from "../../src/render/three/buildCellMesh";
 import { CEILING_TEXTURE_URL } from "../../src/render/three/ceilingTexture";
 import { PORTAL_WALL_TEXTURE_URL } from "../../src/render/three/portalWallTexture";
@@ -149,6 +149,24 @@ describe("buildCellMesh", () => {
     expect(textOnlyMesh.getObjectByName("portal-debug-label:room-a:side-1")).toBeDefined();
   });
 
+  it("aligns non-square floor geometry with the white outline", () => {
+    const compiled = compileCellComplex(dodecahedron);
+    const top = compiled.cellsById.get("top")!;
+    const mesh = buildCellMesh(top, {
+      debugLevel: "off",
+      portalPanelMode: "none",
+      eyeHeightMeters: 1.6,
+      assets: createPreparedAssets(),
+    });
+
+    const floor = mesh.getObjectByName("floor:top") as THREE.Mesh<THREE.BufferGeometry> | undefined;
+    const outline = mesh.getObjectByName("floor-outline:top") as THREE.Line<THREE.BufferGeometry> | undefined;
+
+    expect(floor).toBeDefined();
+    expect(outline).toBeDefined();
+    expect(xzBounds(floor!.geometry)).toEqual(xzBounds(outline!.geometry));
+  });
+
   it("labels portal side redirects as source side to target face and side", () => {
     const compiled = compileCellComplex(twoPrismLoop);
     const roomA = compiled.cellsById.get("room-a")!;
@@ -200,3 +218,36 @@ describe("buildCellMesh", () => {
     expect(drawnText).toEqual(["1 -> room-b, 3"]);
   });
 });
+
+function createPreparedAssets(): PreparedWorldAssets {
+  return {
+    getTexture: () => new THREE.Texture(),
+    instantiateGltf: () => ({
+      scene: new THREE.Group(),
+      animations: [],
+    }),
+  };
+}
+
+function xzBounds(geometry: THREE.BufferGeometry): {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+} {
+  const position = geometry.getAttribute("position");
+  const xs: number[] = [];
+  const zs: number[] = [];
+
+  for (let index = 0; index < position.count; index += 1) {
+    xs.push(Number(position.getX(index).toFixed(6)));
+    zs.push(Number(position.getZ(index).toFixed(6)));
+  }
+
+  return {
+    minX: Math.min(...xs),
+    maxX: Math.max(...xs),
+    minZ: Math.min(...zs),
+    maxZ: Math.max(...zs),
+  };
+}

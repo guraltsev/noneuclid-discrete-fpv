@@ -103,6 +103,7 @@ describe("buildPortalPathTables", () => {
       }
     }
   });
+
 });
 
 function allFinite(transform: RigidTransform3): boolean {

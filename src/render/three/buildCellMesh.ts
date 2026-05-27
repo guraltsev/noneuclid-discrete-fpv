@@ -58,10 +58,10 @@ function buildFloorMesh(cell: CompiledPrismCell): THREE.Object3D {
   const shape = new THREE.Shape();
   const first = cell.baseVertices[0];
 
-  shape.moveTo(first.x, -first.y);
+  shape.moveTo(first.x, first.y);
 
   for (const vertex of cell.baseVertices.slice(1)) {
-    shape.lineTo(vertex.x, -vertex.y);
+    shape.lineTo(vertex.x, vertex.y);
   }
 
   shape.closePath();
@@ -85,10 +85,10 @@ function buildCeilingMesh(cell: CompiledPrismCell, assets: PreparedWorldAssets):
   const shape = new THREE.Shape();
   const first = cell.baseVertices[0];
 
-  shape.moveTo(first.x, -first.y);
+  shape.moveTo(first.x, first.y);
 
   for (const vertex of cell.baseVertices.slice(1)) {
-    shape.lineTo(vertex.x, -vertex.y);
+    shape.lineTo(vertex.x, vertex.y);
   }
 
   shape.closePath();

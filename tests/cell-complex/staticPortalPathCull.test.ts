@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
 import { checkPortalPathString } from "../../src/cell-complex/portalPathDebug";
 import { buildPortalPathTables, createPortalPathTable, type PortalPathTablesByRootCell } from "../../src/cell-complex/portalPaths";
-import { staticallyCullPortalPathTables } from "../../src/cell-complex/staticPortalPathCull";
-import { cube, twoPrismLoop } from "../../src/authoring/exampleWorlds";
+import { buildStaticallyCulledPortalPathTables, staticallyCullPortalPathTables } from "../../src/cell-complex/staticPortalPathCull";
+import { cube, dodecahedron, twoPrismLoop } from "../../src/authoring/exampleWorlds";
 import { identityMat3, invertRigidTransform3, type RigidTransform3 } from "../../src/math/rigidTransform3";
 
 describe("staticallyCullPortalPathTables", () => {
@@ -160,6 +160,86 @@ describe("staticallyCullPortalPathTables", () => {
     expect(summary.rejectedPaths.every((path) => path.reason === "static-path-budget")).toBe(true);
     expect(summary.rejectedPaths[0]?.details).toContain("static path budget");
   });
+
+  it("spends contextual path budget breadth-first", () => {
+    const world = compileCellComplex(cube);
+    const result = buildStaticallyCulledPortalPathTables(world, {
+      maxDepth: 4,
+      toleranceMeters: 1e-6,
+      maxKeptPathsPerRoot: 5,
+    });
+    const frontTable = result.tables.tablesByRootCellId.get("front")!;
+    const frontSummary = result.summariesByRootCellId.get("front")!;
+
+    expect(frontTable.paths.map((path) => path.depth)).toEqual([0, 1, 1, 1, 1]);
+    expect(frontTable.paths.filter((path) => path.depth > 1)).toHaveLength(0);
+    expect(frontSummary.rejectedByReason.get("static-path-budget")).toBe(1);
+  });
+
+  it("reports contextual path progress at the end of each depth", () => {
+    const world = compileCellComplex(cube);
+    const statuses: {
+      readonly rootCellId: string;
+      readonly depth: number;
+      readonly processedPathCount: number;
+      readonly acceptedPathCount: number;
+      readonly rejectedPathCount: number;
+    }[] = [];
+
+    buildStaticallyCulledPortalPathTables(world, {
+      maxDepth: 2,
+      toleranceMeters: 1e-6,
+      onDepthComplete(status) {
+        if (status.rootCellId === "front") {
+          statuses.push(status);
+        }
+      },
+    });
+
+    expect(statuses.map((status) => status.depth)).toEqual([0, 1, 2]);
+    expect(statuses[0]).toMatchObject({
+      processedPathCount: 1,
+      acceptedPathCount: 1,
+      rejectedPathCount: 0,
+    });
+    expect(statuses[1]).toMatchObject({
+      processedPathCount: 4,
+      acceptedPathCount: 4,
+      rejectedPathCount: 0,
+    });
+  });
+
+  it("can apply static culling while expanding the path tree", () => {
+    const world = compileCellComplex(cube);
+    const candidates = buildPortalPathTables(world, { maxDepth: 3 });
+    const postCull = staticallyCullPortalPathTables(world, candidates, { toleranceMeters: 1e-6 });
+    const contextualCull = buildStaticallyCulledPortalPathTables(world, {
+      maxDepth: 3,
+      toleranceMeters: 1e-6,
+    });
+    const postCullFront = postCull.tables.tablesByRootCellId.get("front")!;
+    const contextualFront = contextualCull.tables.tablesByRootCellId.get("front")!;
+
+    expect(contextualFront.paths.map(pathSignature)).toEqual(postCullFront.paths.map(pathSignature));
+    expect(contextualCull.summariesByRootCellId.get("front")?.rejectedPathCount).toBeGreaterThan(0);
+  });
+
+  it("prunes the dodecahedron path tree contextually at depth 10", () => {
+    const world = compileCellComplex(dodecahedron);
+    const result = buildStaticallyCulledPortalPathTables(world, {
+      maxDepth: 10,
+      toleranceMeters: 1e-6,
+      maxKeptPathsPerRoot: 50_000,
+    });
+    const topSummary = result.summariesByRootCellId.get("top")!;
+    const topTable = result.tables.tablesByRootCellId.get("top")!;
+
+    expect(topTable.maxDepth).toBe(10);
+    expect(topSummary.keptPathCount).toBe(topTable.paths.length);
+    expect(topSummary.keptPathCount).toBeLessThanOrEqual(50_000);
+    expect(topSummary.rejectedPathCount).toBeGreaterThan(0);
+    expect(topSummary.rejectedByReason.get("static-path-budget")).toBeGreaterThan(0);
+  });
 });
 
 function translatedTransform(x: number, y: number, z: number): RigidTransform3 {
@@ -167,4 +247,8 @@ function translatedTransform(x: number, y: number, z: number): RigidTransform3 {
     rotation: identityMat3,
     translation: { x, y, z },
   };
+}
+
+function pathSignature(path: { readonly steps: readonly { readonly sourceCellId: string; readonly sourcePortalId: string }[] }): string {
+  return path.steps.map((step) => `${step.sourceCellId}:${step.sourcePortalId}`).join("/");
 }

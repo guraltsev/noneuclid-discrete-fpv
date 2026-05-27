@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
-import { cube, tetrahedron, torus, twoPrismLoop } from "../../src/authoring/exampleWorlds";
+import { cube, dodecahedron, tetrahedron, torus, twoPrismLoop } from "../../src/authoring/exampleWorlds";
 import { validateAuthoringSpec } from "../../src/authoring/validateAuthoringSpec";
 import {
   composeRigidTransform3,
@@ -28,10 +28,15 @@ describe("compileCellComplex", () => {
     const compiledTorus = compileCellComplex(torus);
     const compiledTetrahedron = compileCellComplex(tetrahedron);
     const compiledCube = compileCellComplex(cube);
+    const compiledDodecahedron = compileCellComplex(dodecahedron);
 
     expect(compiledTorus.cells.map((cell) => cell.id)).toEqual(["torus-room"]);
     expect(compiledTetrahedron.cells).toHaveLength(4);
     expect(compiledCube.cells).toHaveLength(6);
+    expect(compiledDodecahedron.cells).toHaveLength(12);
+    expect(compiledDodecahedron.cells.every((cell) => cell.sideCount === 5)).toBe(true);
+    expect(compiledDodecahedron.cells.every((cell) => cell.portals.length === 5)).toBe(true);
+    expect(compiledDodecahedron.cells.reduce((total, cell) => total + cell.portals.length, 0)).toBe(60);
     expect(compiledCube.cells.every((cell) => cell.sideCount === 4)).toBe(true);
     expect(compiledCube.cellsById.get("front")?.objects).toHaveLength(2);
     expect(compiledCube.cells.every((cell) => cell.objects.length >= 1)).toBe(true);
@@ -69,7 +74,7 @@ describe("compileCellComplex", () => {
   });
 
   it("derives seam-consistent compiled transforms for every example portal", () => {
-    for (const world of [twoPrismLoop, torus, cube, tetrahedron]) {
+    for (const world of [twoPrismLoop, torus, cube, tetrahedron, dodecahedron]) {
       const compiled = compileCellComplex(world);
 
       for (const cell of compiled.cells) {

@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import type { AppState } from "../../appState";
-import { buildPortalPathTables, type PortalPathTablesByRootCell } from "../../cell-complex/portalPaths";
+import type { PortalPathTablesByRootCell } from "../../cell-complex/portalPaths";
 import { checkPortalPathString, createPortalPathDebugState } from "../../cell-complex/portalPathDebug";
 import {
-  staticallyCullPortalPathTables,
+  buildStaticallyCulledPortalPathTables,
   type StaticPortalPathCullResult,
 } from "../../cell-complex/staticPortalPathCull";
 import type { DebugSettings } from "../../glue/debugSettings";
@@ -273,14 +273,31 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
 
     const overlayActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-path-overlays");
     const staticCullDebugActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-static-cull-debug");
-    const candidateTables = buildPortalPathTables(appState.world, {
-      maxDepth: 10,
+    const requestedMaxDepth = 10;
+    console.info(`Portal path debug is building contextually culled path tables to depth ${requestedMaxDepth}.`);
+    const staticCull = buildStaticallyCulledPortalPathTables(appState.world, {
+      maxDepth: requestedMaxDepth,
       skipImmediateReverse: true,
-    });
-    const staticCull = staticallyCullPortalPathTables(appState.world, candidateTables, {
       toleranceMeters: 1e-6,
+      maxKeptPathsPerRoot: 50_000,
       keepRejectedPathDetails: staticCullDebugActive,
+      onDepthComplete(status) {
+        console.info(
+          [
+            "Portal path debug depth complete:",
+            `root=${status.rootCellId}`,
+            `depth=${status.depth}`,
+            `processed=${status.processedPathCount}`,
+            `accepted=${status.acceptedPathCount}`,
+            `rejected=${status.rejectedPathCount}`,
+            `keptTotal=${status.totalKeptPathCount}`,
+            `rejectedTotal=${status.totalRejectedPathCount}`,
+            `budgetExhausted=${status.budgetExhausted}`,
+          ].join(" "),
+        );
+      },
     });
+    const candidateTables = staticCull.tables;
     const overlays: THREE.Object3D[] = [];
     let activeOverlayPathText: string | undefined;
     const checkPath = (pathText: string) =>
@@ -404,6 +421,7 @@ function logPortalDebugInstall(
   console.info(
     [
       "Portal path debug is active.",
+      `Contextual static culling is applied while expanding each path node to depth ${candidateTables.maxDepth}.`,
       "Use window.noneuclidPortalDebug.CheckCellPath(\"0 2 3\") to inspect a path.",
       overlayActive
         ? "Use window.noneuclidPortalDebug.ShowCellPath(\"0 2 3\") to draw a red destination-cell overlay."

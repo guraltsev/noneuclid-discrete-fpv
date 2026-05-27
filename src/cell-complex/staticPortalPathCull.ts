@@ -5,11 +5,14 @@ import {
   type PortalPathTable,
   type PortalPathTablesByRootCell,
   type PortalRenderPath,
+  type PortalRenderStep,
 } from "./portalPaths";
+import type { CompiledPortal } from "./specs";
 import type { CompiledPrismSide } from "./prismCells";
 import {
   composeRigidTransform3,
   identityRigidTransform3,
+  invertRigidTransform3,
   transformPoint3,
   type RigidTransform3,
 } from "../math/rigidTransform3";
@@ -19,6 +22,23 @@ export interface StaticPortalPathCullOptions {
   readonly toleranceMeters: number;
   readonly maxKeptPathsPerRoot?: number;
   readonly keepRejectedPathDetails?: boolean;
+}
+
+export interface BuildStaticallyCulledPortalPathTablesOptions extends StaticPortalPathCullOptions {
+  readonly maxDepth: number;
+  readonly skipImmediateReverse?: boolean;
+  readonly onDepthComplete?: (status: StaticPortalPathDepthStatus) => void;
+}
+
+export interface StaticPortalPathDepthStatus {
+  readonly rootCellId: string;
+  readonly depth: number;
+  readonly processedPathCount: number;
+  readonly acceptedPathCount: number;
+  readonly rejectedPathCount: number;
+  readonly totalKeptPathCount: number;
+  readonly totalRejectedPathCount: number;
+  readonly budgetExhausted: boolean;
 }
 
 export interface StaticPortalPathCullResult {
@@ -45,6 +65,156 @@ export interface RejectedPortalRenderPath {
   readonly pathId: number;
   readonly reason: StaticPortalPathRejectReason;
   readonly details?: string;
+}
+
+export function buildStaticallyCulledPortalPathTables(
+  world: CompiledCellComplex,
+  options: BuildStaticallyCulledPortalPathTablesOptions,
+): StaticPortalPathCullResult {
+  if (!Number.isInteger(options.maxDepth) || options.maxDepth < 0) {
+    throw new Error(`Portal path maxDepth must be a non-negative integer; received ${options.maxDepth}.`);
+  }
+
+  if (options.toleranceMeters < 0) {
+    throw new Error(`Static portal path cull tolerance must be non-negative; received ${options.toleranceMeters}.`);
+  }
+
+  const tablesByRootCellId = new Map<string, PortalPathTable>();
+  const summariesByRootCellId = new Map<string, StaticPortalPathCullSummary>();
+  const skipImmediateReverse = options.skipImmediateReverse ?? true;
+  const cullTolerance = Math.max(options.toleranceMeters, forbiddenPortalJunctionRadiusMeters / 2);
+
+  for (const rootCell of world.cells) {
+    const rootPath: PortalRenderPath = {
+      id: 0,
+      rootCellId: rootCell.id,
+      destinationCellId: rootCell.id,
+      depth: 0,
+      steps: [],
+      destinationFromRoot: identityRigidTransform3,
+      rootFromDestination: identityRigidTransform3,
+    };
+    const keptPaths: PortalRenderPath[] = [rootPath];
+    const rejectedPaths: RejectedPortalRenderPath[] = [];
+    const rejectedByReason = new Map<StaticPortalPathRejectReason, number>();
+    let frontier: PortalRenderPath[] = [rootPath];
+    const budget = options.maxKeptPathsPerRoot ?? Number.POSITIVE_INFINITY;
+    let nextPathId = 1;
+    let budgetExhausted = false;
+
+    options.onDepthComplete?.({
+      rootCellId: rootCell.id,
+      depth: 0,
+      processedPathCount: 1,
+      acceptedPathCount: 1,
+      rejectedPathCount: 0,
+      totalKeptPathCount: keptPaths.length,
+      totalRejectedPathCount: rejectedPaths.length,
+      budgetExhausted,
+    });
+
+    for (let depth = 1; depth <= options.maxDepth && frontier.length > 0 && !budgetExhausted; depth += 1) {
+      const nextFrontier: PortalRenderPath[] = [];
+      let processedPathCount = 0;
+      let acceptedPathCount = 0;
+      let rejectedPathCount = 0;
+
+      for (const parent of frontier) {
+        const sourceCell = world.cellsById.get(parent.destinationCellId);
+
+        if (!sourceCell) {
+          throw new Error(`Portal path reached missing cell "${parent.destinationCellId}".`);
+        }
+
+        for (const portal of sourceCell.portals) {
+          if (skipImmediateReverse && isImmediateReverse(parent, portal)) {
+            continue;
+          }
+
+          processedPathCount += 1;
+
+          if (keptPaths.length >= budget) {
+            const rejection = createRejection(nextPathId, "static-path-budget", options.keepRejectedPathDetails);
+            rejectedPaths.push(rejection);
+            rejectedByReason.set(rejection.reason, (rejectedByReason.get(rejection.reason) ?? 0) + 1);
+            rejectedPathCount += 1;
+            budgetExhausted = true;
+            break;
+          }
+
+          const destinationFromRoot = composeRigidTransform3(portal.transformToTarget, parent.destinationFromRoot);
+          const child: PortalRenderPath = {
+            id: nextPathId,
+            rootCellId: rootCell.id,
+            destinationCellId: portal.targetCellId,
+            depth,
+            parentPathId: parent.id,
+            steps: [
+              ...parent.steps,
+              {
+                sourceCellId: sourceCell.id,
+                sourcePortalId: portal.id,
+                sourcePortalSideIndex: portal.sideIndex,
+                targetCellId: portal.targetCellId,
+                targetPortalId: portal.targetPortalId,
+              },
+            ],
+            destinationFromRoot,
+            rootFromDestination: invertRigidTransform3(destinationFromRoot),
+          };
+          nextPathId += 1;
+
+          const rejection = rejectGeometrically(world, child, cullTolerance, options.keepRejectedPathDetails);
+
+          if (rejection) {
+            rejectedPaths.push(rejection);
+            rejectedByReason.set(rejection.reason, (rejectedByReason.get(rejection.reason) ?? 0) + 1);
+            rejectedPathCount += 1;
+            continue;
+          }
+
+          keptPaths.push(child);
+          nextFrontier.push(child);
+          acceptedPathCount += 1;
+        }
+
+        if (budgetExhausted) {
+          break;
+        }
+      }
+
+      options.onDepthComplete?.({
+        rootCellId: rootCell.id,
+        depth,
+        processedPathCount,
+        acceptedPathCount,
+        rejectedPathCount,
+        totalKeptPathCount: keptPaths.length,
+        totalRejectedPathCount: rejectedPaths.length,
+        budgetExhausted,
+      });
+
+      frontier = nextFrontier;
+    }
+
+    tablesByRootCellId.set(rootCell.id, createPortalPathTable(rootCell.id, options.maxDepth, keptPaths));
+    summariesByRootCellId.set(rootCell.id, {
+      rootCellId: rootCell.id,
+      inputPathCount: keptPaths.length + rejectedPaths.length,
+      keptPathCount: keptPaths.length,
+      rejectedPathCount: rejectedPaths.length,
+      rejectedByReason,
+      rejectedPaths: options.keepRejectedPathDetails ? rejectedPaths : rejectedPaths.map(stripRejectionDetails),
+    });
+  }
+
+  return {
+    tables: {
+      maxDepth: options.maxDepth,
+      tablesByRootCellId,
+    },
+    summariesByRootCellId,
+  };
 }
 
 export function staticallyCullPortalPathTables(
@@ -152,6 +322,21 @@ function rejectGeometrically(
   }
 
   return undefined;
+}
+
+function isImmediateReverse(parent: PortalRenderPath, portal: CompiledPortal): boolean {
+  const previousStep: PortalRenderStep | undefined = parent.steps[parent.steps.length - 1];
+
+  if (!previousStep) {
+    return false;
+  }
+
+  return (
+    parent.destinationCellId === previousStep.targetCellId &&
+    portal.id === previousStep.targetPortalId &&
+    portal.targetCellId === previousStep.sourceCellId &&
+    portal.reciprocalPortalId === previousStep.sourcePortalId
+  );
 }
 
 function rejectAgainstPortalAperture(
