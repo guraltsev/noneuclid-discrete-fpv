@@ -1,8 +1,6 @@
 import * as THREE from "three";
 import { createPortalWallMaterial } from "./portalWallTexture";
 
-export const WALL_HEIGHT_METERS = 100;
-
 export interface PortalWallMeshSpec {
   readonly portalId: string;
   readonly sideIndex: number;

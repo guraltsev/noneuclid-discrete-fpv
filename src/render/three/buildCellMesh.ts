@@ -2,7 +2,8 @@ import * as THREE from "three";
 import type { CompiledPrismCell } from "../../cell-complex/prismCells";
 import { hasDebugOption, type DebugOptionId } from "../../glue/debugOptions";
 import { buildDecorationMesh } from "./buildDecorationMesh";
-import { buildPortalMesh, WALL_HEIGHT_METERS } from "./buildPortalMesh";
+import { buildPortalMesh } from "./buildPortalMesh";
+import { createCeilingMaterial } from "./ceilingTexture";
 import { isGeodesciMarmotObjectSpec } from "../../world-objects/geodesciMarmot";
 
 export interface BuildCellMeshOptions {
@@ -26,6 +27,7 @@ export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOpt
   };
 
   group.add(buildFloorMesh(cell));
+  group.add(buildCeilingMesh(cell));
   group.add(buildSideWalls(cell));
   group.add(buildFloorOutline(cell));
 
@@ -71,6 +73,31 @@ function buildFloorMesh(cell: CompiledPrismCell): THREE.Object3D {
   return floor;
 }
 
+function buildCeilingMesh(cell: CompiledPrismCell): THREE.Object3D {
+  const shape = new THREE.Shape();
+  const first = cell.baseVertices[0];
+
+  shape.moveTo(first.x, first.z);
+
+  for (const vertex of cell.baseVertices.slice(1)) {
+    shape.lineTo(vertex.x, vertex.z);
+  }
+
+  shape.closePath();
+
+  const geometry = new THREE.ShapeGeometry(shape);
+  geometry.rotateX(Math.PI / 2);
+
+  const [minX, maxX, minZ, maxZ] = getBaseBounds(cell);
+  const ceiling = new THREE.Mesh(
+    geometry,
+    createCeilingMaterial(Math.max(1, (maxX - minX) / 8), Math.max(1, (maxZ - minZ) / 8)),
+  );
+  ceiling.name = `ceiling:${cell.id}`;
+  ceiling.position.y = cell.heightMeters;
+  return ceiling;
+}
+
 function buildSideWalls(cell: CompiledPrismCell): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `walls:${cell.id}`;
@@ -86,13 +113,13 @@ function buildSideWalls(cell: CompiledPrismCell): THREE.Object3D {
           sideIndex: side.sideIndex,
           start,
           end,
-          heightMeters: WALL_HEIGHT_METERS,
+          heightMeters: cell.heightMeters,
         }),
       );
       continue;
     }
 
-    const wall = buildSolidWallMesh(cell.id, side.sideIndex, start, end, WALL_HEIGHT_METERS);
+    const wall = buildSolidWallMesh(cell.id, side.sideIndex, start, end, cell.heightMeters);
     group.add(wall);
   }
 
@@ -108,6 +135,22 @@ function buildFloorOutline(cell: CompiledPrismCell): THREE.Object3D {
   const outline = new THREE.Line(geometry, material);
   outline.name = `floor-outline:${cell.id}`;
   return outline;
+}
+
+function getBaseBounds(cell: CompiledPrismCell): readonly [number, number, number, number] {
+  let minX = cell.baseVertices[0]?.x ?? 0;
+  let maxX = minX;
+  let minZ = cell.baseVertices[0]?.z ?? 0;
+  let maxZ = minZ;
+
+  for (const vertex of cell.baseVertices.slice(1)) {
+    minX = Math.min(minX, vertex.x);
+    maxX = Math.max(maxX, vertex.x);
+    minZ = Math.min(minZ, vertex.z);
+    maxZ = Math.max(maxZ, vertex.z);
+  }
+
+  return [minX, maxX, minZ, maxZ];
 }
 
 function buildPortalDebugPanels(cell: CompiledPrismCell, options: BuildCellMeshOptions): THREE.Object3D {

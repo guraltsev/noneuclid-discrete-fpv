@@ -25,7 +25,7 @@ OnFace("triangle-room", [
       cells: [
         {
           id: "triangle-room",
-          heightMeters: 4,
+          heightMeters: 15,
           baseVertices: [
             { x: 0, z: 0 },
             { x: 4, z: 0 },

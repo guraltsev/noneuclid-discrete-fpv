@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import type { AppState } from "../../appState";
 import type { DebugOptionId } from "../../glue/debugOptions";
-import { publicAssetUrl } from "../../glue/assetUrls";
 import { movePlayer } from "../../movement/movePlayer";
 import { DEFAULT_PLAYER_EYE_HEIGHT_METERS } from "../../movement/playerBody";
 import { createDefaultPlayerPose } from "../../movement/playerPose";
@@ -28,9 +27,8 @@ export interface ThreeAppOptions {
 
 export function createThreeApp(container: HTMLElement, appState: AppState, options: ThreeAppOptions): ThreeApp {
   const scene = new THREE.Scene();
-  const skyTexture = createSkyBackgroundTexture();
-  scene.background = skyTexture ?? new THREE.Color(0x1c1c1c);
-  scene.environment = skyTexture ?? null;
+  scene.background = new THREE.Color(0x1c1c1c);
+  scene.environment = null;
   scene.fog = new THREE.Fog(0x2f2f2f, 0, 200);
 
   const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 250);
@@ -221,30 +219,10 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       for (const cellMesh of cellMeshes.values()) {
         disposeObject3D(cellMesh);
       }
-      skyTexture?.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     },
   };
-}
-
-function createSkyBackgroundTexture(): THREE.Texture | undefined {
-  if (typeof Image === "undefined") {
-    return undefined;
-  }
-
-  const loader = new THREE.CubeTextureLoader();
-  const texture = loader.load([
-    publicAssetUrl("skybox-1.png"),
-    publicAssetUrl("skybox-2.jpg"),
-    publicAssetUrl("skybox-3.jpg"),
-    publicAssetUrl("skybox-4.jpg"),
-    publicAssetUrl("skybox-5.jpg"),
-    publicAssetUrl("skybox-6.jpg"),
-  ]);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.name = "skybox";
-  return texture;
 }
 
 function disposeObject3D(object: THREE.Object3D): void {

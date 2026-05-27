@@ -1,17 +1,9 @@
 import * as THREE from "three";
 import type { CompiledCellComplex } from "../../cell-complex/compileCellComplex";
 import { publicAssetUrl } from "../../glue/assetUrls";
+import { CEILING_TEXTURE_FILE } from "./ceilingTexture";
 import { PORTAL_WALL_TEXTURE_FILE } from "./portalWallTexture";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
-
-const skyboxAssetNames = [
-  "skybox-1.png",
-  "skybox-2.jpg",
-  "skybox-3.jpg",
-  "skybox-4.jpg",
-  "skybox-5.jpg",
-  "skybox-6.jpg",
-] as const;
 
 export async function preloadWorldAssets(world: CompiledCellComplex): Promise<void> {
   const assetPaths = new Set<string>();
@@ -28,7 +20,7 @@ export async function preloadWorldAssets(world: CompiledCellComplex): Promise<vo
   const textureLoader = new THREE.TextureLoader();
 
   await Promise.allSettled([
-    ...[PORTAL_WALL_TEXTURE_FILE, ...skyboxAssetNames].map((assetPath) => {
+    ...[PORTAL_WALL_TEXTURE_FILE, CEILING_TEXTURE_FILE].map((assetPath) => {
       diagnostics.recordPreloadStart(assetPath, "texture");
       return textureLoader.loadAsync(publicAssetUrl(assetPath)).then(
         (texture) => {

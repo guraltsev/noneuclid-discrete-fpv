@@ -1,7 +1,7 @@
 import type { AuthoredPortalSpec, CellComplexSpec, CellObjectSpec, PrismCellSpec } from "../cell-complex/specs";
 import { isWorldLibraryObjectSpec, type WorldLibraryObjectSpec } from "../world-objects/library";
 
-const defaultHeightMeters = 4;
+const defaultHeightMeters = 15;
 
 type VertexTuple = readonly [number, number];
 type EdgePair = readonly [number, number];

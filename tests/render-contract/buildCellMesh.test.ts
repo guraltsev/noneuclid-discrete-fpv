@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
 import { twoPrismLoop } from "../../src/authoring/exampleWorlds";
 import { buildCellMesh } from "../../src/render/three/buildCellMesh";
-import { WALL_HEIGHT_METERS } from "../../src/render/three/buildPortalMesh";
+import { CEILING_TEXTURE_URL } from "../../src/render/three/ceilingTexture";
 import { PORTAL_WALL_TEXTURE_URL } from "../../src/render/three/portalWallTexture";
 
 describe("buildCellMesh", () => {
@@ -33,18 +33,24 @@ describe("buildCellMesh", () => {
     ]);
 
     const floor = mesh.getObjectByName("floor:room-a");
+    const ceiling = mesh.getObjectByName("ceiling:room-a");
     const walls = mesh.getObjectByName("walls:room-a") as THREE.Group | null;
     const portal = mesh.getObjectByName("portal:edge-1-2");
     const portalMesh = portal?.getObjectByName("portal-wall:edge-1-2") as THREE.Mesh | undefined;
+    const ceilingMesh = ceiling as THREE.Mesh | undefined;
 
     expect(floor).toBeDefined();
+    expect(ceiling).toBeDefined();
     expect(walls).toBeDefined();
     expect(walls?.children).toHaveLength(roomA.sideCount);
+    expect((ceilingMesh?.material as THREE.MeshStandardMaterial | undefined)?.userData.textureUrl).toBe(
+      CEILING_TEXTURE_URL,
+    );
     expect(portal).toBeDefined();
     expect(portal?.userData.textureUrl).toBe(PORTAL_WALL_TEXTURE_URL);
     expect(portalMesh?.userData.kind).toBe("portal-wall-mesh");
-    expect((portalMesh?.geometry as THREE.PlaneGeometry | undefined)?.parameters.height).toBe(WALL_HEIGHT_METERS);
-    expect(portalMesh?.position.y).toBeCloseTo(WALL_HEIGHT_METERS / 2);
+    expect((portalMesh?.geometry as THREE.PlaneGeometry | undefined)?.parameters.height).toBe(roomA.heightMeters);
+    expect(portalMesh?.position.y).toBeCloseTo(roomA.heightMeters / 2);
     expect((portalMesh?.material as THREE.MeshStandardMaterial | undefined)?.userData.textureUrl).toBe(
       PORTAL_WALL_TEXTURE_URL,
     );

@@ -18,7 +18,7 @@ describe("worldBuilder", () => {
     expect(spec.cells).toHaveLength(1);
     expect(spec.cells[0]).toMatchObject({
       id: "front",
-      heightMeters: 4,
+      heightMeters: 15,
       baseVertices: [
         { x: -1, z: -1 },
         { x: 1, z: -1 },
