@@ -14,6 +14,11 @@ export const portalPanelModeDefinitions = [
     label: "Panel With Text",
     description: "Show the textured portal wall with the label placard.",
   },
+  {
+    id: "text-only",
+    label: "Text Only",
+    description: "Show portal labels with the dark label backing panel but without the textured portal wall.",
+  },
 ] as const;
 
 export type PortalPanelModeId = (typeof portalPanelModeDefinitions)[number]["id"];
@@ -33,5 +38,9 @@ export function shouldRenderPortalWall(mode: PortalPanelModeId): boolean {
 }
 
 export function shouldRenderPortalPlacard(mode: PortalPanelModeId): boolean {
-  return mode === "panel-with-text";
+  return mode === "panel-with-text" || mode === "text-only";
+}
+
+export function shouldRenderPortalText(mode: PortalPanelModeId): boolean {
+  return mode === "panel-with-text" || mode === "text-only";
 }

@@ -69,7 +69,7 @@ describe("buildCellMesh", () => {
     );
   });
 
-  it("renders the textured portal wall for panel modes and the placard only for labeled mode", () => {
+  it("renders portal panels and labels according to the selected portal panel mode", () => {
     const compiled = compileCellComplex(twoPrismLoop);
     const roomA = compiled.cellsById.get("room-a")!;
     const preparedAssets: PreparedWorldAssets = {
@@ -126,6 +126,12 @@ describe("buildCellMesh", () => {
       eyeHeightMeters: 1.6,
       assets: preparedAssets,
     });
+    const textOnlyMesh = buildCellMesh(roomA, {
+      debugLevel: "basic",
+      portalPanelMode: "text-only",
+      eyeHeightMeters: 1.6,
+      assets: preparedAssets,
+    });
 
     expect(noPanelMesh.getObjectByName("portal-wall:side-1")).toBeUndefined();
     expect(noPanelMesh.getObjectByName("portal-debug:room-a")).toBeUndefined();
@@ -137,5 +143,60 @@ describe("buildCellMesh", () => {
     expect(labeledMesh.getObjectByName("portal-wall:side-1")).toBeDefined();
     expect(labeledMesh.getObjectByName("portal-debug-panel:room-a:side-1")).toBeDefined();
     expect(labeledMesh.getObjectByName("portal-debug-label:room-a:side-1")).toBeDefined();
+
+    expect(textOnlyMesh.getObjectByName("portal-wall:side-1")).toBeUndefined();
+    expect(textOnlyMesh.getObjectByName("portal-debug-panel:room-a:side-1")).toBeDefined();
+    expect(textOnlyMesh.getObjectByName("portal-debug-label:room-a:side-1")).toBeDefined();
+  });
+
+  it("labels portal side redirects as source side to target face and side", () => {
+    const compiled = compileCellComplex(twoPrismLoop);
+    const roomA = compiled.cellsById.get("room-a")!;
+    const preparedAssets: PreparedWorldAssets = {
+      getTexture: () => new THREE.Texture(),
+      instantiateGltf: () => ({
+        scene: new THREE.Group(),
+        animations: [],
+      }),
+    };
+    const drawnText: string[] = [];
+
+    vi.stubGlobal("document", {
+      createElement(tagName: string) {
+        if (tagName !== "canvas") {
+          throw new Error(`Unexpected element request: ${tagName}`);
+        }
+
+        return {
+          width: 0,
+          height: 0,
+          getContext(kind: string) {
+            if (kind !== "2d") {
+              return null;
+            }
+
+            return {
+              clearRect() {},
+              fillText(text: string) {
+                drawnText.push(text);
+              },
+              fillStyle: "#ffffff",
+              font: "bold 96px system-ui, sans-serif",
+              textAlign: "center",
+              textBaseline: "middle",
+            };
+          },
+        };
+      },
+    });
+
+    buildCellMesh(roomA, {
+      debugLevel: "basic",
+      portalPanelMode: "text-only",
+      eyeHeightMeters: 1.6,
+      assets: preparedAssets,
+    });
+
+    expect(drawnText).toEqual(["1 -> room-b, 3"]);
   });
 });

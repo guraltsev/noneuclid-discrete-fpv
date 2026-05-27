@@ -13,6 +13,16 @@ describe("canApplyDebugSettingsAtRuntime", () => {
     ).toBe(true);
   });
 
+  it("allows portal path debug settings to apply at runtime", () => {
+    expect(
+      canApplyDebugSettingsAtRuntime({
+        debugLevel: "verbose",
+        portalPanelMode: "text-only",
+        debugOptions: ["portal-path-debug", "portal-static-cull-debug", "portal-path-overlays"],
+      }),
+    ).toBe(true);
+  });
+
   it("still allows updates when no checkbox debug options are selected", () => {
     expect(
       canApplyDebugSettingsAtRuntime({

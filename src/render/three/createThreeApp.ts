@@ -164,8 +164,11 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     }
     const frameAfterMoveMs = performance.now();
 
-    if (moveResult?.crossedPortal && playerPose.cellId !== previousCellId) {
-      runtimeDiagnostics().recordCellEntered(previousCellId, playerPose.cellId, moveResult.crossedPortalId ?? "unknown-portal");
+    if (playerPose.cellId !== previousCellId) {
+      if (moveResult?.crossedPortal) {
+        runtimeDiagnostics().recordCellEntered(previousCellId, playerPose.cellId, moveResult.crossedPortalId ?? "unknown-portal");
+      }
+      portalDebugRuntime.syncRootCell();
     }
 
     for (const runtime of marmotRuntimes) {
@@ -243,12 +246,15 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     visibleCellId = currentlyVisibleCellId;
   }
 
-  function createPortalDebugRuntime(): { dispose(): void } {
+  function createPortalDebugRuntime(): { syncRootCell(): void; dispose(): void } {
     const portalPathDebugActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-path-debug");
 
     if (!portalPathDebugActive) {
       uninstallPortalDebugHelpers();
-      return { dispose() {} };
+      return {
+        syncRootCell() {},
+        dispose() {},
+      };
     }
 
     const overlayActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-path-overlays");
@@ -262,6 +268,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       keepRejectedPathDetails: staticCullDebugActive,
     });
     const overlays: THREE.Object3D[] = [];
+    let activeOverlayPathText: string | undefined;
     const checkPath = (pathText: string) =>
       checkPortalPathString(pathText, {
         world: appState.world,
@@ -320,16 +327,17 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         geometry.computeVertexNormals();
 
         const material = new THREE.MeshBasicMaterial({
-          color: 0xff2222,
+          color: new THREE.Color(destinationCell.floorColor),
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.72,
+          opacity: 0.82,
           depthWrite: false,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.name = `debug-cell-path-overlay:${path.id}`;
         scene.add(mesh);
         overlays.push(mesh);
+        activeOverlayPathText = pathText;
 
         return {
           ok: true,
@@ -340,6 +348,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       },
       HideCellPaths() {
         hideCellPathOverlays(overlays, scene);
+        activeOverlayPathText = undefined;
       },
       get state() {
         return createPortalPathDebugState(playerPose.cellId, candidateTables, staticCull);
@@ -350,8 +359,22 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     logPortalDebugInstall(candidateTables, staticCull, staticCullDebugActive, overlayActive);
 
     return {
+      syncRootCell() {
+        if (activeOverlayPathText === undefined) {
+          return;
+        }
+
+        const refreshResult = (window as typeof window & { noneuclidPortalDebug?: PortalDebugHelpers })
+          .noneuclidPortalDebug?.ShowCellPath(activeOverlayPathText);
+
+        if (!refreshResult?.ok) {
+          hideCellPathOverlays(overlays, scene);
+          activeOverlayPathText = undefined;
+        }
+      },
       dispose() {
         hideCellPathOverlays(overlays, scene);
+        activeOverlayPathText = undefined;
         uninstallPortalDebugHelpers();
       },
     };

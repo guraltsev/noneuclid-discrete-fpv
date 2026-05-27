@@ -1,7 +1,12 @@
 import * as THREE from "three";
 import type { CompiledPrismCell } from "../../cell-complex/prismCells";
 import type { DebugLevelId } from "../../glue/debugLevels";
-import { shouldRenderPortalPlacard, shouldRenderPortalWall, type PortalPanelModeId } from "../../glue/portalPanelMode";
+import {
+  shouldRenderPortalPlacard,
+  shouldRenderPortalText,
+  shouldRenderPortalWall,
+  type PortalPanelModeId,
+} from "../../glue/portalPanelMode";
 import { buildDecorationMesh } from "./buildDecorationMesh";
 import { buildPortalMesh } from "./buildPortalMesh";
 import { createCeilingMaterial } from "./ceilingTexture";
@@ -34,7 +39,7 @@ export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOpt
   group.add(buildSideWalls(cell, options.assets, options.debugLevel, options.portalPanelMode));
   group.add(buildFloorOutline(cell));
 
-  if (options.debugLevel !== "off" && shouldRenderPortalPlacard(options.portalPanelMode)) {
+  if (options.debugLevel !== "off" && shouldRenderPortalText(options.portalPanelMode)) {
     group.add(buildPortalDebugPanels(cell, options));
   }
 
@@ -184,33 +189,34 @@ function buildPortalDebugPanels(cell: CompiledPrismCell, options: BuildCellMeshO
 
     const panelWidth = Math.min(edgeLength * 0.75, 6);
     const panelHeight = 1.1;
-    const panel = new THREE.Mesh(
-      new THREE.PlaneGeometry(panelWidth, panelHeight),
-      new THREE.MeshBasicMaterial({
-        color: 0x101820,
-        opacity: 0.78,
-        transparent: true,
-        side: THREE.DoubleSide,
-      }),
-    );
-    panel.position.copy(position);
-    panel.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), inward);
-    panel.name = `portal-debug-panel:${cell.id}:${portal.id}`;
-
-    group.add(panel);
+    const rotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), inward);
 
     if (shouldRenderPortalPlacard(options.portalPanelMode)) {
-      const label = buildTextPlane(
-        `${portal.targetCellId}\nside ${formatSideLabel(portal.targetPortalId)}`,
-        panelWidth * 0.9,
-        panelHeight * 0.72,
+      const panel = new THREE.Mesh(
+        new THREE.PlaneGeometry(panelWidth, panelHeight),
+        new THREE.MeshBasicMaterial({
+          color: 0x101820,
+          opacity: 0.78,
+          transparent: true,
+          side: THREE.DoubleSide,
+        }),
       );
-      label.position.copy(position);
-      label.position.addScaledVector(inward, 0.02);
-      label.quaternion.copy(panel.quaternion);
-      label.name = `portal-debug-label:${cell.id}:${portal.id}`;
-      group.add(label);
+      panel.position.copy(position);
+      panel.quaternion.copy(rotation);
+      panel.name = `portal-debug-panel:${cell.id}:${portal.id}`;
+      group.add(panel);
     }
+
+    const label = buildTextPlane(
+      `${portal.sideIndex} -> ${portal.targetCellId}, ${formatSideLabel(portal.targetPortalId)}`,
+      panelWidth * 0.9,
+      panelHeight * 0.72,
+    );
+    label.position.copy(position);
+    label.position.addScaledVector(inward, shouldRenderPortalPlacard(options.portalPanelMode) ? 0.02 : 0.01);
+    label.quaternion.copy(rotation);
+    label.name = `portal-debug-label:${cell.id}:${portal.id}`;
+    group.add(label);
   }
 
   return group;

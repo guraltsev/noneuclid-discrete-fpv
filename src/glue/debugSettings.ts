@@ -13,7 +13,12 @@ export interface DebugSettingsSupport {
 }
 
 const defaultDebugSettingsSupport: DebugSettingsSupport = {
-  runtimeMutableOptions: ["runtime-diagnostics"],
+  runtimeMutableOptions: [
+    "runtime-diagnostics",
+    "portal-path-debug",
+    "portal-static-cull-debug",
+    "portal-path-overlays",
+  ],
 };
 
 export function canApplyDebugSettingsAtRuntime(
