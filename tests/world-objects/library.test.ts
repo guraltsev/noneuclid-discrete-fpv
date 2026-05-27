@@ -108,13 +108,13 @@ describe("worldObjectLibrary", () => {
       kind: "geodesci-marmot",
       assetPath: "racoon-animation/scene.gltf",
       position: { x: -4.2, y: 0, z: -1.8 },
-      velocity: { x: 2.3, z: 0.65 },
+      velocity: { x: 2.3, y: 0.65 },
       scale: 1.05,
       collision: {
         dx: 0.42,
-        dy: 0.42,
-        dz: 0.72,
-        offset: { x: 0, y: 0.22, z: 0 },
+        dy: 0.72,
+        dz: 0.42,
+        offset: { x: 0, y: 0, z: 0.22 },
       },
       animationClipName: "Armature|ArmatureAction",
     });

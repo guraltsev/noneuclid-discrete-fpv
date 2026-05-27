@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { worldPointToThree } from "./worldAxes";
 
 export interface PrerenderCellsOptions {
   readonly renderer: Pick<THREE.WebGLRenderer, "compile" | "render">;
@@ -71,8 +72,20 @@ function prerenderCellWarmupViews(options: PrerenderCellsOptions): void {
     cellMesh.visible = true;
 
     for (const view of warmupViews) {
-      options.camera.position.set(view.position.x, view.position.y, view.position.z);
-      options.camera.rotation.set(view.pitchRadians ?? 0, view.yawRadians, 0, "YXZ");
+      const forward = {
+        x: -Math.sin(view.yawRadians) * Math.cos(view.pitchRadians ?? 0),
+        y: Math.cos(view.yawRadians) * Math.cos(view.pitchRadians ?? 0),
+        z: Math.sin(view.pitchRadians ?? 0),
+      };
+      options.camera.position.copy(worldPointToThree(view.position));
+      options.camera.up.set(0, 1, 0);
+      options.camera.lookAt(
+        worldPointToThree({
+          x: view.position.x + forward.x,
+          y: view.position.y + forward.y,
+          z: view.position.z + forward.z,
+        }),
+      );
       options.camera.updateMatrixWorld(true);
       options.renderer.render(options.scene, options.camera);
     }

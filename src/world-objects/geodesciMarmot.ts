@@ -7,15 +7,16 @@ import type { DynamicObjectState } from "../movement/dynamicObject";
 import { moveDynamicObject } from "../movement/moveDynamicObject";
 import { runtimeDiagnostics } from "../render/three/runtimeDiagnostics";
 import type { PreparedGltfAsset, PreparedWorldAssets } from "../render/three/preloadWorldAssets";
+import { applyWorldRigidTransform } from "../render/three/worldAxes";
 
-const defaultCollisionOffset = { x: 0, y: 0.22, z: 0 } as const;
+const defaultCollisionOffset = { x: 0, y: 0, z: 0.22 } as const;
 const defaultAnimationClipName = "Armature|ArmatureAction";
 const defaultScale = 0.42;
 
 export interface CreateGeodesciMarmotOptions {
   readonly id: string;
   readonly position: { readonly x: number; readonly y: number; readonly z: number };
-  readonly velocity: { readonly x: number; readonly z: number };
+  readonly velocity: { readonly x: number; readonly y: number };
   readonly scale?: number;
   readonly animationClipName?: string;
 }
@@ -39,8 +40,8 @@ export function createGeodesciMarmot(options: CreateGeodesciMarmotOptions): Geod
     velocity: options.velocity,
     collision: {
       dx: 0.42,
-      dy: 0.42,
-      dz: 0.72,
+      dy: 0.72,
+      dz: 0.42,
       offset: defaultCollisionOffset,
     },
     animationClipName: options.animationClipName ?? defaultAnimationClipName,
@@ -67,14 +68,14 @@ export function createGeodesciMarmotRuntime(
     new THREE.BoxGeometry(0.35, 0.24, 0.6),
     new THREE.MeshStandardMaterial({ color: 0x8c6a43, roughness: 0.95 }),
   );
-  placeholder.position.y = 0.16;
+  placeholder.position.z = 0.16;
   placeholder.name = `placeholder:${objectSpec.id}`;
   visual.add(placeholder);
 
   let mixer: THREE.AnimationMixer | undefined;
   const initialState = createDynamicObjectState(objectSpec, startCellId);
   let state = initialState;
-  const forwardSpeedMetersPerSecond = Math.hypot(objectSpec.velocity.x, objectSpec.velocity.z);
+  const forwardSpeedMetersPerSecond = Math.hypot(objectSpec.velocity.x, objectSpec.velocity.y);
   const diagnostics = runtimeDiagnostics();
 
   diagnostics.recordAssetInstanceStart(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
@@ -99,7 +100,7 @@ export function createGeodesciMarmotRuntime(
         return;
       }
 
-      const displacement = transformDirection3(state.localPose, vec3(0, 0, forwardSpeedMetersPerSecond * deltaSeconds));
+      const displacement = transformDirection3(state.localPose, vec3(0, forwardSpeedMetersPerSecond * deltaSeconds, 0));
       const result = moveDynamicObject({
         world,
         object: state,
@@ -163,33 +164,11 @@ function createDynamicObjectState(objectSpec: GeodesciMarmotObjectSpec, cellId: 
 }
 
 function yawFromVelocity(velocity: GeodesciMarmotObjectSpec["velocity"]): number {
-  return Math.atan2(velocity.x, velocity.z);
+  return Math.atan2(velocity.x, velocity.y);
 }
 
 function applyObjectPose(root: THREE.Object3D, pose: RigidTransform3): void {
-  root.position.set(pose.translation.x, pose.translation.y, pose.translation.z);
-  root.quaternion.setFromRotationMatrix(rotationMatrixFromRigidTransform(pose));
-}
-
-function rotationMatrixFromRigidTransform(transform: RigidTransform3): THREE.Matrix4 {
-  return new THREE.Matrix4().set(
-    transform.rotation.m00,
-    transform.rotation.m01,
-    transform.rotation.m02,
-    0,
-    transform.rotation.m10,
-    transform.rotation.m11,
-    transform.rotation.m12,
-    0,
-    transform.rotation.m20,
-    transform.rotation.m21,
-    transform.rotation.m22,
-    0,
-    0,
-    0,
-    0,
-    1,
-  );
+  applyWorldRigidTransform(root, pose);
 }
 
 function disposeObject3D(object: THREE.Object3D): void {

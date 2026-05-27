@@ -139,8 +139,8 @@ function isPortalCrossingReachable(
   return (
     sideProjection >= 0 &&
     sideProjection <= side.lengthMeters &&
-    point.y - (bounds?.halfY ?? 0) >= 0 &&
-    point.y + (bounds?.halfY ?? 0) <= heightMeters &&
+    point.z - (bounds?.halfZ ?? 0) >= 0 &&
+    point.z + (bounds?.halfZ ?? 0) <= heightMeters &&
     getSignedClearanceToSide(side, point, support) < 0
   );
 }
@@ -165,18 +165,18 @@ function resolveBlockedWallPosition(
 
   return translateObject(object, {
     x: side.inwardNormal.x * inwardOffset,
-    y: 0,
-    z: side.inwardNormal.z * inwardOffset,
+    y: side.inwardNormal.y * inwardOffset,
+    z: 0,
   });
 }
 
 function projectPointAlongSideWithBounds(side: CompiledPrismSide, point: Vec3): number {
   const edgeX = side.end.x - side.start.x;
-  const edgeZ = side.end.z - side.start.z;
+  const edgeY = side.end.y - side.start.y;
 
-  return ((point.x - side.start.x) * edgeX + (point.z - side.start.z) * edgeZ) / side.lengthMeters;
+  return ((point.x - side.start.x) * edgeX + (point.y - side.start.y) * edgeY) / side.lengthMeters;
 }
 
 function getSignedClearanceToSide(side: CompiledPrismSide, point: Vec3, support: number): number {
-  return (point.x - side.start.x) * side.inwardNormal.x + (point.z - side.start.z) * side.inwardNormal.z - support;
+  return (point.x - side.start.x) * side.inwardNormal.x + (point.y - side.start.y) * side.inwardNormal.y - support;
 }

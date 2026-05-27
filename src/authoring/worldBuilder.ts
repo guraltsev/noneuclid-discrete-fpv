@@ -7,7 +7,7 @@ const defaultHeightMeters = 15;
 interface MutableCell {
   readonly id: string;
   readonly heightMeters: number;
-  readonly baseVertices: readonly { readonly x: number; readonly z: number }[];
+  readonly baseVertices: readonly { readonly x: number; readonly y: number }[];
   readonly portals: AuthoredPortalSpec[];
   readonly visuals: {
     floorColor: string;
@@ -145,18 +145,18 @@ export function authorSideToSideIndex(vertexCount: number, side: number): number
   return side;
 }
 
-function normalizeVertex(faceName: string, vertex: readonly number[], index: number): { readonly x: number; readonly z: number } {
+function normalizeVertex(faceName: string, vertex: readonly number[], index: number): { readonly x: number; readonly y: number } {
   if (!Array.isArray(vertex) || vertex.length !== 2) {
-    throw new Error(`PolygonFace("${faceName}") vertex ${index} must be a [x, z] pair.`);
+    throw new Error(`PolygonFace("${faceName}") vertex ${index} must be a [x, y] pair.`);
   }
 
-  const [x, z] = vertex;
+  const [x, y] = vertex;
 
-  if (!Number.isFinite(x) || !Number.isFinite(z)) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
     throw new Error(`PolygonFace("${faceName}") vertex ${index} must contain finite numbers.`);
   }
 
-  return { x, z };
+  return { x, y };
 }
 
 function normalizeSideIndex(side: number, vertexCount: number): { readonly sideIndex: number; readonly portalId: string } {

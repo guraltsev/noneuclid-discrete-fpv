@@ -48,11 +48,11 @@ function compilePortal(
 }
 
 function derivePortalTransform(sourceSide: CompiledPrismSide, targetSide: CompiledPrismSide) {
-  const up = vec3(0, 1, 0);
+  const up = vec3(0, 0, 1);
   const sourceTangent = sideTangent(sourceSide);
   const targetTangent = sideTangent(targetSide);
-  const sourceOutward = vec3(-sourceSide.inwardNormal.x, 0, -sourceSide.inwardNormal.z);
-  const targetInward = vec3(targetSide.inwardNormal.x, 0, targetSide.inwardNormal.z);
+  const sourceOutward = vec3(-sourceSide.inwardNormal.x, -sourceSide.inwardNormal.y, 0);
+  const targetInward = vec3(targetSide.inwardNormal.x, targetSide.inwardNormal.y, 0);
   const sourceBasis = orthonormalBasis(sourceTangent, up, sourceOutward);
   const targetBasis = orthonormalBasis(scaleVec3(targetTangent, -1), up, targetInward);
   const rotation = multiplyMat3(targetBasis, transposeMat3(sourceBasis));
@@ -64,11 +64,11 @@ function derivePortalTransform(sourceSide: CompiledPrismSide, targetSide: Compil
 }
 
 function sideTangent(side: CompiledPrismSide): Vec3 {
-  return normalizeVec3(vec3(side.end.x - side.start.x, 0, side.end.z - side.start.z));
+  return normalizeVec3(vec3(side.end.x - side.start.x, side.end.y - side.start.y, 0));
 }
 
 function sideMidpoint(side: CompiledPrismSide): Vec3 {
-  return vec3((side.start.x + side.end.x) / 2, 0, (side.start.z + side.end.z) / 2);
+  return vec3((side.start.x + side.end.x) / 2, (side.start.y + side.end.y) / 2, 0);
 }
 
 function orthonormalBasis(tangent: Vec3, up: Vec3, crossing: Vec3): Mat3 {

@@ -25,6 +25,7 @@ import { createDesktopControls } from "./desktopControls";
 import { prerenderCells } from "./prerenderCells";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
 import type { PreparedWorldAssets } from "./preloadWorldAssets";
+import { worldPointToThree } from "./worldAxes";
 
 export interface ThreeApp {
   readonly scene: THREE.Scene;
@@ -94,12 +95,25 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   disableShadows(scene);
 
   function applyCameraPose(): void {
-    camera.position.set(
-      playerPose.position.x,
-      playerPose.position.y + DEFAULT_PLAYER_EYE_HEIGHT_METERS,
-      playerPose.position.z,
-    );
-    camera.rotation.set(playerPose.pitchRadians, playerPose.yawRadians, 0, "YXZ");
+    const eyePosition = {
+      x: playerPose.position.x,
+      y: playerPose.position.y,
+      z: playerPose.position.z + DEFAULT_PLAYER_EYE_HEIGHT_METERS,
+    };
+    const cameraPosition = worldPointToThree(eyePosition);
+    const forward = {
+      x: -Math.sin(playerPose.yawRadians) * Math.cos(playerPose.pitchRadians),
+      y: Math.cos(playerPose.yawRadians) * Math.cos(playerPose.pitchRadians),
+      z: Math.sin(playerPose.pitchRadians),
+    };
+    const lookAtWorld = {
+      x: eyePosition.x + forward.x,
+      y: eyePosition.y + forward.y,
+      z: eyePosition.z + forward.z,
+    };
+    camera.position.copy(cameraPosition);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(worldPointToThree(lookAtWorld));
   }
 
   const warmupStartMs = performance.now();
@@ -320,9 +334,9 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
 
         const geometry = new THREE.BufferGeometry();
         const vertices = destinationCell.baseVertices.map((vertex) =>
-          transformPoint3(path.rootFromDestination, vec3(vertex.x, 0.03, vertex.z)),
+          transformPoint3(path.rootFromDestination, vec3(vertex.x, vertex.y, 0.03)),
         );
-        geometry.setFromPoints(vertices.map((vertex) => new THREE.Vector3(vertex.x, vertex.y, vertex.z)));
+        geometry.setFromPoints(vertices.map((vertex) => worldPointToThree(vertex)));
         geometry.setIndex(triangleFanIndices(vertices.length));
         geometry.computeVertexNormals();
 
@@ -473,31 +487,31 @@ function disableShadows(root: THREE.Object3D): void {
 
 function createCellWarmupViews(cell: AppState["world"]["cells"][number]) {
   const center = getCellCenter(cell);
-  const eyeY = Math.min(cell.heightMeters - 0.1, DEFAULT_PLAYER_EYE_HEIGHT_METERS);
+  const eyeZ = Math.min(cell.heightMeters - 0.1, DEFAULT_PLAYER_EYE_HEIGHT_METERS);
 
   return [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2].map((yawRadians) => ({
     position: {
       x: center.x,
-      y: eyeY,
-      z: center.z,
+      y: center.y,
+      z: eyeZ,
     },
     yawRadians,
   }));
 }
 
-function getCellCenter(cell: AppState["world"]["cells"][number]): { readonly x: number; readonly z: number } {
+function getCellCenter(cell: AppState["world"]["cells"][number]): { readonly x: number; readonly y: number } {
   let x = 0;
-  let z = 0;
+  let y = 0;
 
   for (const vertex of cell.baseVertices) {
     x += vertex.x;
-    z += vertex.z;
+    y += vertex.y;
   }
 
   const count = Math.max(1, cell.baseVertices.length);
   return {
     x: x / count,
-    z: z / count,
+    y: y / count,
   };
 }
 

@@ -58,16 +58,16 @@ function buildFloorMesh(cell: CompiledPrismCell): THREE.Object3D {
   const shape = new THREE.Shape();
   const first = cell.baseVertices[0];
 
-  shape.moveTo(first.x, first.z);
+  shape.moveTo(first.x, -first.y);
 
   for (const vertex of cell.baseVertices.slice(1)) {
-    shape.lineTo(vertex.x, vertex.z);
+    shape.lineTo(vertex.x, -vertex.y);
   }
 
   shape.closePath();
 
   const geometry = new THREE.ShapeGeometry(shape);
-  geometry.rotateX(Math.PI / 2);
+  geometry.rotateX(-Math.PI / 2);
 
   const material = new THREE.MeshStandardMaterial({
     color: new THREE.Color(cell.floorColor),
@@ -85,21 +85,21 @@ function buildCeilingMesh(cell: CompiledPrismCell, assets: PreparedWorldAssets):
   const shape = new THREE.Shape();
   const first = cell.baseVertices[0];
 
-  shape.moveTo(first.x, first.z);
+  shape.moveTo(first.x, -first.y);
 
   for (const vertex of cell.baseVertices.slice(1)) {
-    shape.lineTo(vertex.x, vertex.z);
+    shape.lineTo(vertex.x, -vertex.y);
   }
 
   shape.closePath();
 
   const geometry = new THREE.ShapeGeometry(shape);
-  geometry.rotateX(Math.PI / 2);
+  geometry.rotateX(-Math.PI / 2);
 
-  const [minX, maxX, minZ, maxZ] = getBaseBounds(cell);
+  const [minX, maxX, minY, maxY] = getBaseBounds(cell);
   const ceiling = new THREE.Mesh(
     geometry,
-    createCeilingMaterial(Math.max(1, (maxX - minX) / 8), Math.max(1, (maxZ - minZ) / 8), assets),
+    createCeilingMaterial(Math.max(1, (maxX - minX) / 8), Math.max(1, (maxY - minY) / 8), assets),
   );
   ceiling.name = `ceiling:${cell.id}`;
   ceiling.position.y = cell.heightMeters;
@@ -143,7 +143,7 @@ function buildSideWalls(
 }
 
 function buildFloorOutline(cell: CompiledPrismCell): THREE.Object3D {
-  const points = cell.baseVertices.map((vertex) => new THREE.Vector3(vertex.x, 0.02, vertex.z));
+  const points = cell.baseVertices.map((vertex) => new THREE.Vector3(vertex.x, 0.02, -vertex.y));
   points.push(points[0].clone());
 
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -156,17 +156,17 @@ function buildFloorOutline(cell: CompiledPrismCell): THREE.Object3D {
 function getBaseBounds(cell: CompiledPrismCell): readonly [number, number, number, number] {
   let minX = cell.baseVertices[0]?.x ?? 0;
   let maxX = minX;
-  let minZ = cell.baseVertices[0]?.z ?? 0;
-  let maxZ = minZ;
+  let minY = cell.baseVertices[0]?.y ?? 0;
+  let maxY = minY;
 
   for (const vertex of cell.baseVertices.slice(1)) {
     minX = Math.min(minX, vertex.x);
     maxX = Math.max(maxX, vertex.x);
-    minZ = Math.min(minZ, vertex.z);
-    maxZ = Math.max(maxZ, vertex.z);
+    minY = Math.min(minY, vertex.y);
+    maxY = Math.max(maxY, vertex.y);
   }
 
-  return [minX, maxX, minZ, maxZ];
+  return [minX, maxX, minY, maxY];
 }
 
 function buildPortalDebugPanels(cell: CompiledPrismCell, options: BuildCellMeshOptions): THREE.Object3D {
@@ -181,10 +181,10 @@ function buildPortalDebugPanels(cell: CompiledPrismCell, options: BuildCellMeshO
       continue;
     }
 
-    const edge = new THREE.Vector3(end.x - start.x, 0, end.z - start.z);
+    const edge = new THREE.Vector3(end.x - start.x, 0, -(end.y - start.y));
     const edgeLength = edge.length();
-    const inward = new THREE.Vector3(-(end.z - start.z), 0, end.x - start.x).normalize();
-    const position = new THREE.Vector3((start.x + end.x) / 2, options.eyeHeightMeters, (start.z + end.z) / 2);
+    const inward = new THREE.Vector3(-(end.y - start.y), 0, -(end.x - start.x)).normalize();
+    const position = new THREE.Vector3((start.x + end.x) / 2, options.eyeHeightMeters, -((start.y + end.y) / 2));
     position.addScaledVector(inward, 0.04);
 
     const panelWidth = Math.min(edgeLength * 0.75, 6);
@@ -262,13 +262,13 @@ function buildTextPlane(text: string, widthMeters: number, heightMeters: number)
 function buildSolidWallMesh(
   cellId: string,
   sideIndex: number,
-  start: { readonly x: number; readonly z: number },
-  end: { readonly x: number; readonly z: number },
+  start: { readonly x: number; readonly y: number },
+  end: { readonly x: number; readonly y: number },
   heightMeters: number,
 ): THREE.Mesh {
-  const edgeLength = Math.hypot(end.x - start.x, end.z - start.z);
-  const inward = new THREE.Vector3(-(end.z - start.z), 0, end.x - start.x).normalize();
-  const position = new THREE.Vector3((start.x + end.x) / 2, heightMeters / 2, (start.z + end.z) / 2);
+  const edgeLength = Math.hypot(end.x - start.x, end.y - start.y);
+  const inward = new THREE.Vector3(-(end.y - start.y), 0, -(end.x - start.x)).normalize();
+  const position = new THREE.Vector3((start.x + end.x) / 2, heightMeters / 2, -((start.y + end.y) / 2));
   const geometry = new THREE.PlaneGeometry(edgeLength, heightMeters);
   const material = new THREE.MeshStandardMaterial({
     color: 0x6d7f86,

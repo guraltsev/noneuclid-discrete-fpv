@@ -8,7 +8,7 @@ export interface Vec3 {
 
 /**
  * Runtime geometry uses cell-local coordinates:
- * x is horizontal right/east, y is vertical height, and z is horizontal depth.
+ * x is horizontal right/east, y is horizontal depth/forward, and z is vertical height.
  */
 export function vec3(x: number, y: number, z: number): Vec3 {
   return { x, y, z };

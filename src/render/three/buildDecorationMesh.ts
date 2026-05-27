@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { AssetObjectSpec, CellObjectSpec } from "../../cell-complex/specs";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
 import type { PreparedGltfAsset, PreparedWorldAssets } from "./preloadWorldAssets";
+import { worldPointToThree, worldYawRadiansToThree } from "./worldAxes";
 
 export function buildDecorationMesh(
   cellId: string,
@@ -22,8 +23,8 @@ function buildStaticAssetMesh(
 ): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `decoration:${objectSpec.id}`;
-  group.position.set(objectSpec.position.x, objectSpec.position.y, objectSpec.position.z);
-  group.rotation.y = objectSpec.yawRadians ?? 0;
+  group.position.copy(worldPointToThree(objectSpec.position));
+  group.rotation.y = worldYawRadiansToThree(objectSpec.yawRadians ?? 0);
   const diagnostics = runtimeDiagnostics();
 
   if (objectSpec.scaleXYZ) {

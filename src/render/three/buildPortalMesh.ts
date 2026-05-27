@@ -5,8 +5,8 @@ import type { PreparedWorldAssets } from "./preloadWorldAssets";
 export interface PortalWallMeshSpec {
   readonly portalId: string;
   readonly sideIndex: number;
-  readonly start: { readonly x: number; readonly z: number };
-  readonly end: { readonly x: number; readonly z: number };
+  readonly start: { readonly x: number; readonly y: number };
+  readonly end: { readonly x: number; readonly y: number };
   readonly heightMeters: number;
   readonly assets: PreparedWorldAssets;
   readonly showWall: boolean;
@@ -15,7 +15,7 @@ export interface PortalWallMeshSpec {
 export function buildPortalMesh(spec: PortalWallMeshSpec): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `portal:${spec.portalId}`;
-  const edgeLength = Math.hypot(spec.end.x - spec.start.x, spec.end.z - spec.start.z);
+  const edgeLength = Math.hypot(spec.end.x - spec.start.x, spec.end.y - spec.start.y);
   const material = createPortalWallMaterial(
     Math.max(1, edgeLength / 8),
     Math.max(1, spec.heightMeters / 8),
@@ -38,14 +38,14 @@ export function buildPortalMesh(spec: PortalWallMeshSpec): THREE.Object3D {
 }
 
 function buildWallMesh(spec: PortalWallMeshSpec, material: THREE.MeshStandardMaterial): THREE.Mesh {
-  const start = new THREE.Vector3(spec.start.x, 0, spec.start.z);
-  const end = new THREE.Vector3(spec.end.x, 0, spec.end.z);
+  const start = new THREE.Vector3(spec.start.x, 0, -spec.start.y);
+  const end = new THREE.Vector3(spec.end.x, 0, -spec.end.y);
   const edgeLength = new THREE.Vector3().subVectors(end, start).length();
-  const inward = new THREE.Vector3(-(spec.end.z - spec.start.z), 0, spec.end.x - spec.start.x).normalize();
+  const inward = new THREE.Vector3(-(spec.end.y - spec.start.y), 0, -(spec.end.x - spec.start.x)).normalize();
   const position = new THREE.Vector3(
     (spec.start.x + spec.end.x) / 2,
     spec.heightMeters / 2,
-    (spec.start.z + spec.end.z) / 2,
+    -((spec.start.y + spec.end.y) / 2),
   );
 
   const geometry = new THREE.PlaneGeometry(edgeLength, spec.heightMeters);

@@ -50,8 +50,8 @@ export function movePlayer(request: MoveRequest): MoveResult {
         rotatedPose,
         simpleCollisionBox(body.radiusMeters * 2, body.heightMeters, body.radiusMeters * 2, {
           x: 0,
-          y: body.heightMeters / 2,
-          z: 0,
+          y: 0,
+          z: body.heightMeters / 2,
         }),
       ),
       displacement,
@@ -96,9 +96,9 @@ function resolveLocalDisplacement(
   const sinYaw = Math.sin(yawRadians);
   const cosYaw = Math.cos(yawRadians);
   const displacement = {
-    x: cosYaw * localDisplacement.x + sinYaw * localDisplacement.z,
-    y: localDisplacement.y,
-    z: -sinYaw * localDisplacement.x + cosYaw * localDisplacement.z,
+    x: cosYaw * localDisplacement.x - sinYaw * localDisplacement.y,
+    y: sinYaw * localDisplacement.x + cosYaw * localDisplacement.y,
+    z: localDisplacement.z,
   };
 
   if (coordinateFrame === "current-cell") {

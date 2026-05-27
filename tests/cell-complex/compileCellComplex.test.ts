@@ -13,9 +13,9 @@ import { almostEqualVec3, normalizeVec3, vec3 } from "../../src/math/vec3";
 
 describe("compileCellComplex", () => {
   const triangleBase = [
-    { x: 0, z: 0 },
-    { x: 1, z: 0 },
-    { x: 0, z: 1 },
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
   ];
 
   it("preserves the visible prism cells from the starter world", () => {
@@ -62,9 +62,9 @@ describe("compileCellComplex", () => {
     const compiled = compileCellComplex(torus);
     const room = compiled.cellsById.get("torus-room");
 
-    expect(room?.portalBySideIndex.get(0)?.transformToTarget.translation).toEqual({ x: 0, y: 0, z: 15 });
+    expect(room?.portalBySideIndex.get(0)?.transformToTarget.translation).toEqual({ x: 0, y: 15, z: 0 });
     expect(room?.portalBySideIndex.get(1)?.transformToTarget.translation).toEqual({ x: -15, y: 0, z: 0 });
-    expect(room?.portalBySideIndex.get(2)?.transformToTarget.translation).toEqual({ x: 0, y: 0, z: -15 });
+    expect(room?.portalBySideIndex.get(2)?.transformToTarget.translation).toEqual({ x: 0, y: -15, z: 0 });
     expect(room?.portalBySideIndex.get(3)?.transformToTarget.translation).toEqual({ x: 15, y: 0, z: 0 });
   });
 
@@ -86,8 +86,8 @@ describe("compileCellComplex", () => {
           const targetMidpoint = midpointOf(targetSide);
           const sourceTangent = tangentOf(sourceSide);
           const targetTangent = tangentOf(targetSide);
-          const sourceOutward = vec3(-sourceSide.inwardNormal.x, 0, -sourceSide.inwardNormal.z);
-          const targetInward = vec3(targetSide.inwardNormal.x, 0, targetSide.inwardNormal.z);
+          const sourceOutward = vec3(-sourceSide.inwardNormal.x, -sourceSide.inwardNormal.y, 0);
+          const targetInward = vec3(targetSide.inwardNormal.x, targetSide.inwardNormal.y, 0);
 
           expect(almostEqualVec3(transformPoint3(portal.transformToTarget, sourceMidpoint), targetMidpoint)).toBe(true);
           expect(
@@ -158,18 +158,18 @@ describe("compileCellComplex", () => {
     expect(errors).toContain('Portal "room:bad" is not reciprocated by "room:bad".');
   });
 
-  it("rejects non-convex and clockwise prism bases for stage 03 movement", () => {
+  it("rejects non-convex and clockwise prism bases", () => {
     const nonConvexErrors = validateAuthoringSpec({
       cells: [
         {
           id: "non-convex",
           heightMeters: 2,
           baseVertices: [
-            { x: 0, z: 0 },
-            { x: 2, z: 0 },
-            { x: 1, z: 1 },
-            { x: 2, z: 2 },
-            { x: 0, z: 2 },
+            { x: 0, y: 0 },
+            { x: 2, y: 0 },
+            { x: 1, y: 1 },
+            { x: 2, y: 2 },
+            { x: 0, y: 2 },
           ],
           portals: [],
         },
@@ -181,10 +181,10 @@ describe("compileCellComplex", () => {
           id: "clockwise",
           heightMeters: 2,
           baseVertices: [
-            { x: -1, z: -1 },
-            { x: -1, z: 1 },
-            { x: 1, z: 1 },
-            { x: 1, z: -1 },
+            { x: -1, y: -1 },
+            { x: -1, y: 1 },
+            { x: 1, y: 1 },
+            { x: 1, y: -1 },
           ],
           portals: [],
         },
@@ -192,10 +192,10 @@ describe("compileCellComplex", () => {
     });
 
     expect(nonConvexErrors).toContain(
-      'Cell "non-convex" must be strictly convex; non-convex prism cells are not supported in stage 03.',
+      'Cell "non-convex" must be strictly convex; non-convex prism cells are not supported.',
     );
     expect(clockwiseErrors).toContain(
-      'Cell "clockwise" must list baseVertices in counterclockwise order for stage 03 movement.',
+      'Cell "clockwise" must list baseVertices in counterclockwise order in the x/y plane.',
     );
     expect(() =>
       compileCellComplex({
@@ -204,24 +204,24 @@ describe("compileCellComplex", () => {
             id: "non-convex",
             heightMeters: 2,
             baseVertices: [
-              { x: 0, z: 0 },
-              { x: 2, z: 0 },
-              { x: 1, z: 1 },
-              { x: 2, z: 2 },
-              { x: 0, z: 2 },
+              { x: 0, y: 0 },
+              { x: 2, y: 0 },
+              { x: 1, y: 1 },
+              { x: 2, y: 2 },
+              { x: 0, y: 2 },
             ],
             portals: [],
           },
         ],
       }),
-    ).toThrowError(/non-convex prism cells are not supported in stage 03/);
+    ).toThrowError(/non-convex prism cells are not supported/);
   });
 });
 
-function midpointOf(side: { readonly start: { readonly x: number; readonly z: number }; readonly end: { readonly x: number; readonly z: number } }) {
-  return vec3((side.start.x + side.end.x) / 2, 0, (side.start.z + side.end.z) / 2);
+function midpointOf(side: { readonly start: { readonly x: number; readonly y: number }; readonly end: { readonly x: number; readonly y: number } }) {
+  return vec3((side.start.x + side.end.x) / 2, (side.start.y + side.end.y) / 2, 0);
 }
 
-function tangentOf(side: { readonly start: { readonly x: number; readonly z: number }; readonly end: { readonly x: number; readonly z: number } }) {
-  return normalizeVec3(vec3(side.end.x - side.start.x, 0, side.end.z - side.start.z));
+function tangentOf(side: { readonly start: { readonly x: number; readonly y: number }; readonly end: { readonly x: number; readonly y: number } }) {
+  return normalizeVec3(vec3(side.end.x - side.start.x, side.end.y - side.start.y, 0));
 }

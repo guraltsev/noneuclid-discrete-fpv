@@ -3,7 +3,7 @@ export const forbiddenPortalJunctionRadiusMeters = 0.15;
 export interface PortalJunction {
   readonly id: string;
   readonly adjacentPortalIds: readonly string[];
-  readonly position: { readonly x: number; readonly z: number };
+  readonly position: { readonly x: number; readonly y: number };
 }
 
 export interface ForbiddenZone {

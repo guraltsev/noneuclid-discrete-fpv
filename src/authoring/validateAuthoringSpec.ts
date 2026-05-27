@@ -80,7 +80,7 @@ export function validateAuthoringSpec(spec: CellComplexSpec): readonly string[] 
 }
 
 function validatePrismBase(
-  vertices: readonly { readonly x: number; readonly z: number }[],
+  vertices: readonly { readonly x: number; readonly y: number }[],
 ): string | undefined {
   if (vertices.length < 3) {
     return undefined;
@@ -91,11 +91,11 @@ function validatePrismBase(
   for (let index = 0; index < vertices.length; index += 1) {
     const current = vertices[index];
     const next = vertices[(index + 1) % vertices.length];
-    signedAreaTwice += current.x * next.z - next.x * current.z;
+    signedAreaTwice += current.x * next.y - next.x * current.y;
   }
 
   if (signedAreaTwice <= 0) {
-    return "must list baseVertices in counterclockwise order for stage 03 movement.";
+    return "must list baseVertices in counterclockwise order in the x/y plane.";
   }
 
   let sawPositiveTurn = false;
@@ -105,20 +105,20 @@ function validatePrismBase(
     const current = vertices[index];
     const next = vertices[(index + 1) % vertices.length];
     const edgeAX = current.x - prev.x;
-    const edgeAZ = current.z - prev.z;
+    const edgeAY = current.y - prev.y;
     const edgeBX = next.x - current.x;
-    const edgeBZ = next.z - current.z;
-    const turn = edgeAX * edgeBZ - edgeAZ * edgeBX;
+    const edgeBY = next.y - current.y;
+    const turn = edgeAX * edgeBY - edgeAY * edgeBX;
 
     if (turn <= 0) {
-      return "must be strictly convex; non-convex prism cells are not supported in stage 03.";
+      return "must be strictly convex; non-convex prism cells are not supported.";
     }
 
     sawPositiveTurn = true;
   }
 
   if (!sawPositiveTurn) {
-    return "must be strictly convex; non-convex prism cells are not supported in stage 03.";
+    return "must be strictly convex; non-convex prism cells are not supported.";
   }
 
   return undefined;

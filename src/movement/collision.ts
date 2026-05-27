@@ -41,13 +41,13 @@ export function testCellCollision(candidate: CollisionCandidate): CollisionResul
     return { blocked: false };
   }
 
-  const { center, halfY } = bounds;
+  const { center, halfZ } = bounds;
 
-  if (center.y - halfY < 0) {
+  if (center.z - halfZ < 0) {
     return { blocked: true, reason: "floor" };
   }
 
-  if (center.y + halfY > candidate.cell.heightMeters) {
+  if (center.z + halfZ > candidate.cell.heightMeters) {
     return { blocked: true, reason: "ceiling" };
   }
 
@@ -100,21 +100,21 @@ function simpleBoxIntersectsSingularityColumn(
   column: SingularityCollisionColumn,
 ): boolean {
   const columnHalfHeight = column.heightMeters / 2;
-  const boxMinY = box.center.y - box.halfY;
-  const boxMaxY = box.center.y + box.halfY;
-  const columnMinY = column.center.y - columnHalfHeight;
-  const columnMaxY = column.center.y + columnHalfHeight;
+  const boxMinZ = box.center.z - box.halfZ;
+  const boxMaxZ = box.center.z + box.halfZ;
+  const columnMinZ = column.center.z - columnHalfHeight;
+  const columnMaxZ = column.center.z + columnHalfHeight;
 
-  if (boxMaxY <= columnMinY || boxMinY >= columnMaxY) {
+  if (boxMaxZ <= columnMinZ || boxMinZ >= columnMaxZ) {
     return false;
   }
 
   const closestX = clamp(column.center.x, box.center.x - box.halfX, box.center.x + box.halfX);
-  const closestZ = clamp(column.center.z, box.center.z - box.halfZ, box.center.z + box.halfZ);
+  const closestY = clamp(column.center.y, box.center.y - box.halfY, box.center.y + box.halfY);
   const dx = column.center.x - closestX;
-  const dz = column.center.z - closestZ;
+  const dy = column.center.y - closestY;
 
-  return dx * dx + dz * dz < column.radiusMeters * column.radiusMeters;
+  return dx * dx + dy * dy < column.radiusMeters * column.radiusMeters;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -122,18 +122,18 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 export function signedDistanceToSide(side: CompiledPrismSide, point: Vec3): number {
-  return (point.x - side.start.x) * side.inwardNormal.x + (point.z - side.start.z) * side.inwardNormal.z;
+  return (point.x - side.start.x) * side.inwardNormal.x + (point.y - side.start.y) * side.inwardNormal.y;
 }
 
 export function getSideSupport(side: CompiledPrismSide, bounds: SimpleBoxBounds): number {
-  return Math.abs(side.inwardNormal.x) * bounds.halfX + Math.abs(side.inwardNormal.z) * bounds.halfZ;
+  return Math.abs(side.inwardNormal.x) * bounds.halfX + Math.abs(side.inwardNormal.y) * bounds.halfY;
 }
 
 export function projectPointAlongSide(side: CompiledPrismSide, point: Vec3): number {
   const edgeX = side.end.x - side.start.x;
-  const edgeZ = side.end.z - side.start.z;
+  const edgeY = side.end.y - side.start.y;
 
-  return ((point.x - side.start.x) * edgeX + (point.z - side.start.z) * edgeZ) / side.lengthMeters;
+  return ((point.x - side.start.x) * edgeX + (point.y - side.start.y) * edgeY) / side.lengthMeters;
 }
 
 export function findBoundaryCrossing(

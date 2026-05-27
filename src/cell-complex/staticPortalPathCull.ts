@@ -163,13 +163,13 @@ function rejectAgainstPortalAperture(
   toleranceMeters: number,
   includeDetails: boolean | undefined,
 ): RejectedPortalRenderPath | undefined {
-  const sideStart = vec3(side.start.x, 0, side.start.z);
-  const sideEnd = vec3(side.end.x, 0, side.end.z);
-  const tangent = normalizeVec3(vec3(sideEnd.x - sideStart.x, 0, sideEnd.z - sideStart.z));
-  const lengthMeters = Math.hypot(sideEnd.x - sideStart.x, sideEnd.z - sideStart.z);
-  const inwardNormal = vec3(side.inwardNormal.x, 0, side.inwardNormal.z);
+  const sideStart = vec3(side.start.x, side.start.y, 0);
+  const sideEnd = vec3(side.end.x, side.end.y, 0);
+  const tangent = normalizeVec3(vec3(sideEnd.x - sideStart.x, sideEnd.y - sideStart.y, 0));
+  const lengthMeters = Math.hypot(sideEnd.x - sideStart.x, sideEnd.y - sideStart.y);
+  const inwardNormal = vec3(side.inwardNormal.x, side.inwardNormal.y, 0);
   const planeDistances = boundInSource.map((point) =>
-    (point.x - sideStart.x) * inwardNormal.x + (point.z - sideStart.z) * inwardNormal.z,
+    (point.x - sideStart.x) * inwardNormal.x + (point.y - sideStart.y) * inwardNormal.y,
   );
 
   if (planeDistances.every((distance) => distance > toleranceMeters)) {
@@ -181,7 +181,7 @@ function rejectAgainstPortalAperture(
     );
   }
 
-  const slabCoordinates = boundInSource.map((point) => dotVec3(vec3(point.x - sideStart.x, 0, point.z - sideStart.z), tangent));
+  const slabCoordinates = boundInSource.map((point) => dotVec3(vec3(point.x - sideStart.x, point.y - sideStart.y, 0), tangent));
 
   if (
     slabCoordinates.every((coordinate) => coordinate < -toleranceMeters) ||
@@ -196,8 +196,8 @@ function rejectAgainstPortalAperture(
   }
 
   if (
-    boundInSource.every((point) => point.y < -toleranceMeters) ||
-    boundInSource.every((point) => point.y > sourceCellHeightMeters + toleranceMeters)
+    boundInSource.every((point) => point.z < -toleranceMeters) ||
+    boundInSource.every((point) => point.z > sourceCellHeightMeters + toleranceMeters)
   ) {
     return createGeometricRejection(
       pathId,
@@ -211,10 +211,10 @@ function rejectAgainstPortalAperture(
 }
 
 function prismBoundVertices(
-  baseVertices: readonly { readonly x: number; readonly z: number }[],
+  baseVertices: readonly { readonly x: number; readonly y: number }[],
   heightMeters: number,
 ): readonly Vec3[] {
-  return baseVertices.flatMap((vertex) => [vec3(vertex.x, 0, vertex.z), vec3(vertex.x, heightMeters, vertex.z)]);
+  return baseVertices.flatMap((vertex) => [vec3(vertex.x, vertex.y, 0), vec3(vertex.x, vertex.y, heightMeters)]);
 }
 
 function createGeometricRejection(

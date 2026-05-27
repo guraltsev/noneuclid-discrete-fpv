@@ -30,7 +30,7 @@ export function playerPoseFromDynamicObject(object: DynamicObjectState, pitchRad
   return {
     cellId: object.cellId,
     position: object.localPose.translation,
-    yawRadians: Math.atan2(-object.localPose.rotation.m20, object.localPose.rotation.m00),
+    yawRadians: Math.atan2(object.localPose.rotation.m10, object.localPose.rotation.m00),
     pitchRadians,
   };
 }

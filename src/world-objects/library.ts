@@ -6,7 +6,7 @@ const libraryObjectBrand = Symbol("world-library-object");
 
 export interface GeodesicMarmotAuthoringParams {
   readonly position: readonly [x: number, y: number, z: number];
-  readonly velocity: readonly [vx: number, vz: number];
+  readonly velocity: readonly [vx: number, vy: number];
   readonly scale?: number;
 }
 
@@ -47,7 +47,7 @@ export const worldObjectLibrary: WorldObjectLibrary = {
         },
         velocity: {
           x: params.velocity[0],
-          z: params.velocity[1],
+          y: params.velocity[1],
         },
         scale: params.scale,
       }),

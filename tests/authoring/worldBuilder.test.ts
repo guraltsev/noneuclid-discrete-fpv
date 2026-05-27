@@ -23,10 +23,10 @@ describe("worldBuilder", () => {
       id: "front",
       heightMeters: 15,
       baseVertices: [
-        { x: -1, z: -1 },
-        { x: 1, z: -1 },
-        { x: 1, z: 1 },
-        { x: -1, z: 1 },
+        { x: -1, y: -1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 1 },
+        { x: -1, y: 1 },
       ],
       visuals: {
         floorColor: "#d95f5f",
@@ -116,7 +116,7 @@ describe("worldBuilder", () => {
       {
         id: "front-runner",
         kind: "geodesci-marmot",
-        velocity: { x: 1.2, z: 0.4 },
+        velocity: { x: 1.2, y: 0.4 },
       },
     ]);
   });

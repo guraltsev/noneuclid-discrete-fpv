@@ -27,7 +27,7 @@ describe("rigidTransform3", () => {
     const transform = yawRigidTransform3(Math.PI / 2, vec3(3, 4, 5));
     const inverse = invertRigidTransform3(transform);
     const point = vec3(1, 2, 3);
-    const direction = vec3(0, 0, -1);
+    const direction = vec3(0, 1, 0);
 
     expect(almostEqualVec3(transformPoint3(inverse, transformPoint3(transform, point)), point)).toBe(true);
     expect(almostEqualVec3(transformDirection3(inverse, transformDirection3(transform, direction)), direction)).toBe(
@@ -40,11 +40,11 @@ describe("rigidTransform3", () => {
     const translate = rigidTransform3(identityRigidTransform3.rotation, vec3(10, 0, 0));
     const composed = composeRigidTransform3(translate, rotate);
 
-    expect(almostEqualVec3(transformPoint3(composed, vec3(0, 0, -2)), vec3(8, 0, 0))).toBe(true);
+    expect(almostEqualVec3(transformPoint3(composed, vec3(0, 2, 0)), vec3(8, 0, 0))).toBe(true);
     expect(
       almostEqualVec3(
-        transformPoint3(composeRigidTransform3(rotate, translate), vec3(0, 0, -2)),
-        vec3(-2, 0, -10),
+        transformPoint3(composeRigidTransform3(rotate, translate), vec3(0, 2, 0)),
+        vec3(-2, 10, 0),
       ),
     ).toBe(true);
   });

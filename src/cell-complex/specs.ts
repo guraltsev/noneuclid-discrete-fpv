@@ -7,7 +7,7 @@ export interface CellComplexSpec {
 export interface PrismCellSpec {
   readonly id: string;
   readonly heightMeters: number;
-  readonly baseVertices: readonly { readonly x: number; readonly z: number }[];
+  readonly baseVertices: readonly { readonly x: number; readonly y: number }[];
   readonly portals: readonly AuthoredPortalSpec[];
   readonly visuals?: PrismCellVisualSpec;
 }
@@ -52,7 +52,7 @@ export interface SimpleCollisionBoxSpec {
 export interface GeodesciMarmotObjectSpec extends PositionedCellObjectSpec {
   readonly kind: "geodesci-marmot";
   readonly assetPath: string;
-  readonly velocity: { readonly x: number; readonly z: number };
+  readonly velocity: { readonly x: number; readonly y: number };
   readonly collision: SimpleCollisionBoxSpec;
   readonly animationClipName?: string;
 }

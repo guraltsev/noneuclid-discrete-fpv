@@ -27,9 +27,9 @@ OnFace("triangle-room", [
           id: "triangle-room",
           heightMeters: 15,
           baseVertices: [
-            { x: 0, z: 0 },
-            { x: 4, z: 0 },
-            { x: 2, z: 3 },
+            { x: 0, y: 0 },
+            { x: 4, y: 0 },
+            { x: 2, y: 3 },
           ],
           visuals: {
             floorColor: "#f6c04d",

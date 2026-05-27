@@ -99,7 +99,7 @@ export function createDesktopControls(
       resetRequested = false;
 
       return {
-        localDisplacement: vec3((rightInput / inputLength) * stepMeters, 0, (-forwardInput / inputLength) * stepMeters),
+        localDisplacement: vec3((rightInput / inputLength) * stepMeters, (forwardInput / inputLength) * stepMeters, 0),
         yawDeltaRadians,
         pitchDeltaRadians,
         resetRequested: frameResetRequested,

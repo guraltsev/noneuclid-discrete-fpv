@@ -63,7 +63,7 @@ export function validatePrismBaseVertices(vertices: readonly PrismBaseVertex[]):
   }
 
   if (signedAreaTwice <= geometryTolerance) {
-    return "must list baseVertices in counterclockwise order for stage 03 movement.";
+    return "must list baseVertices in counterclockwise order in the x/y plane.";
   }
 
   for (let index = 0; index < vertices.length; index += 1) {
@@ -71,13 +71,13 @@ export function validatePrismBaseVertices(vertices: readonly PrismBaseVertex[]):
     const current = vertices[index];
     const next = vertices[(index + 1) % vertices.length];
     const edgeAX = current[0] - prev[0];
-    const edgeAZ = current[1] - prev[1];
+    const edgeAY = current[1] - prev[1];
     const edgeBX = next[0] - current[0];
-    const edgeBZ = next[1] - current[1];
-    const turn = edgeAX * edgeBZ - edgeAZ * edgeBX;
+    const edgeBY = next[1] - current[1];
+    const turn = edgeAX * edgeBY - edgeAY * edgeBX;
 
     if (turn <= geometryTolerance) {
-      return "must be strictly convex; non-convex prism cells are not supported in stage 03.";
+      return "must be strictly convex; non-convex prism cells are not supported.";
     }
   }
 

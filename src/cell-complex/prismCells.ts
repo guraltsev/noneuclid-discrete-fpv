@@ -11,7 +11,7 @@ export interface CompiledPrismCellGeometry {
   readonly heightMeters: number;
   readonly isConvex: true;
   readonly sideCount: number;
-  readonly baseVertices: readonly { readonly x: number; readonly z: number }[];
+  readonly baseVertices: readonly { readonly x: number; readonly y: number }[];
   readonly sides: readonly CompiledPrismSide[];
   readonly portalJunctions: readonly PortalJunction[];
   readonly singularityColumns: readonly SingularityCollisionColumn[];
@@ -28,9 +28,9 @@ export interface CompiledPrismCell extends CompiledPrismCellGeometry {
 
 export interface CompiledPrismSide {
   readonly sideIndex: number;
-  readonly start: { readonly x: number; readonly z: number };
-  readonly end: { readonly x: number; readonly z: number };
-  readonly inwardNormal: { readonly x: number; readonly z: number };
+  readonly start: { readonly x: number; readonly y: number };
+  readonly end: { readonly x: number; readonly y: number };
+  readonly inwardNormal: { readonly x: number; readonly y: number };
   readonly lengthMeters: number;
   readonly portal?: CompiledPortal;
 }
@@ -39,16 +39,16 @@ export function compilePrismCellGeometry(spec: PrismCellSpec): CompiledPrismCell
   const sides = spec.baseVertices.map((start, sideIndex): CompiledPrismSide => {
     const end = spec.baseVertices[(sideIndex + 1) % spec.baseVertices.length];
     const dx = end.x - start.x;
-    const dz = end.z - start.z;
-    const lengthMeters = Math.hypot(dx, dz);
+    const dy = end.y - start.y;
+    const lengthMeters = Math.hypot(dx, dy);
 
     return {
       sideIndex,
       start,
       end,
       inwardNormal: {
-        x: -dz / lengthMeters,
-        z: dx / lengthMeters,
+        x: -dy / lengthMeters,
+        y: dx / lengthMeters,
       },
       lengthMeters,
     };
@@ -59,8 +59,8 @@ export function compilePrismCellGeometry(spec: PrismCellSpec): CompiledPrismCell
       junctionId: junction.id,
       center: {
         x: junction.position.x,
-        y: spec.heightMeters / 2,
-        z: junction.position.z,
+        y: junction.position.y,
+        z: spec.heightMeters / 2,
       },
       radiusMeters: forbiddenPortalJunctionRadiusMeters,
       heightMeters: spec.heightMeters,
