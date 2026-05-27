@@ -1,16 +1,13 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { CompiledCellComplex } from "../cell-complex/compileCellComplex";
 import type { CellObjectSpec, GeodesciMarmotObjectSpec } from "../cell-complex/specs";
-import { publicAssetUrl } from "../glue/assetUrls";
 import { yawRigidTransform3, transformDirection3, type RigidTransform3 } from "../math/rigidTransform3";
 import { vec3 } from "../math/vec3";
 import type { DynamicObjectState } from "../movement/dynamicObject";
 import { moveDynamicObject } from "../movement/moveDynamicObject";
 import { runtimeDiagnostics } from "../render/three/runtimeDiagnostics";
-import { requestSceneWarmup } from "../render/three/sceneWarmup";
+import type { PreparedGltfAsset, PreparedWorldAssets } from "../render/three/preloadWorldAssets";
 
-const gltfLoader = new GLTFLoader();
 const defaultCollisionOffset = { x: 0, y: 0.22, z: 0 } as const;
 const defaultAnimationClipName = "Armature|ArmatureAction";
 const defaultScale = 0.42;
@@ -57,6 +54,7 @@ export function isGeodesciMarmotObjectSpec(objectSpec: CellObjectSpec): objectSp
 export function createGeodesciMarmotRuntime(
   objectSpec: GeodesciMarmotObjectSpec,
   startCellId: string,
+  assets: PreparedWorldAssets,
 ): GeodesciMarmotRuntime {
   const root = new THREE.Group();
   root.name = `geodesci-marmot:${objectSpec.id}`;
@@ -80,33 +78,13 @@ export function createGeodesciMarmotRuntime(
   const diagnostics = runtimeDiagnostics();
 
   diagnostics.recordAssetInstanceStart(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
-  gltfLoader.load(
-    publicAssetUrl(objectSpec.assetPath),
-    (gltf) => {
-      placeholder.removeFromParent();
-      disposeObject3D(placeholder);
+  const prepared = assets.instantiateGltf(objectSpec.assetPath);
+  if (!prepared) {
+    throw new Error(`Animated asset was not preloaded: ${objectSpec.assetPath}`);
+  }
 
-      const model = gltf.scene;
-      model.name = `asset:${objectSpec.id}`;
-      visual.add(model);
-
-      if (gltf.animations.length > 0) {
-        mixer = new THREE.AnimationMixer(model);
-        const clip =
-          gltf.animations.find((candidate) => candidate.name === objectSpec.animationClipName) ?? gltf.animations[0];
-        mixer.clipAction(clip).play();
-      }
-
-      requestSceneWarmup(`marmot:${startCellId}/${objectSpec.id}`);
-      diagnostics.recordAssetInstanceComplete(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
-    },
-    undefined,
-    (error) => {
-      placeholder.name = `missing-asset:${objectSpec.id}`;
-      diagnostics.recordAssetInstanceError(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind, error);
-    },
-  );
-
+  mixer = installPreparedMarmotAsset(visual, placeholder, objectSpec, prepared);
+  diagnostics.recordAssetInstanceComplete(startCellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
   applyObjectPose(root, state.localPose);
 
   return {
@@ -147,6 +125,30 @@ export function createGeodesciMarmotRuntime(
       }
     },
   };
+}
+
+function installPreparedMarmotAsset(
+  visual: THREE.Object3D,
+  placeholder: THREE.Object3D,
+  objectSpec: GeodesciMarmotObjectSpec,
+  prepared: PreparedGltfAsset,
+): THREE.AnimationMixer | undefined {
+  placeholder.removeFromParent();
+  disposeObject3D(placeholder);
+
+  const model = prepared.scene;
+  model.name = `asset:${objectSpec.id}`;
+  visual.add(model);
+
+  if (prepared.animations.length <= 0) {
+    return undefined;
+  }
+
+  const mixer = new THREE.AnimationMixer(model);
+  const clip =
+    prepared.animations.find((candidate) => candidate.name === objectSpec.animationClipName) ?? prepared.animations[0];
+  mixer.clipAction(clip).play();
+  return mixer;
 }
 
 function createDynamicObjectState(objectSpec: GeodesciMarmotObjectSpec, cellId: string): DynamicObjectState {

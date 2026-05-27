@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import { publicAssetUrl } from "../../glue/assetUrls";
+import type { PreparedWorldAssets } from "./preloadWorldAssets";
 
 export const PORTAL_WALL_TEXTURE_FILE = "abstract-fractal-geometric-figure-background-with-texture.jpg";
 export const PORTAL_WALL_TEXTURE_URL = publicAssetUrl(PORTAL_WALL_TEXTURE_FILE);
 
-export function createPortalWallMaterial(repeatX: number, repeatY: number): THREE.MeshStandardMaterial {
+export function createPortalWallMaterial(
+  repeatX: number,
+  repeatY: number,
+  assets: PreparedWorldAssets,
+): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     roughness: 0.95,
@@ -13,25 +18,17 @@ export function createPortalWallMaterial(repeatX: number, repeatY: number): THRE
   });
   material.userData.textureUrl = PORTAL_WALL_TEXTURE_URL;
 
-  if (typeof Image !== "undefined") {
-    material.map = loadPortalWallTexture(repeatX, repeatY);
-    material.needsUpdate = true;
+  const preparedTexture = assets.getTexture(PORTAL_WALL_TEXTURE_FILE);
+  if (!preparedTexture) {
+    throw new Error(`Portal wall texture was not preloaded: ${PORTAL_WALL_TEXTURE_FILE}`);
   }
 
+  material.map = configurePortalWallTexture(preparedTexture.clone(), repeatX, repeatY);
+  material.needsUpdate = true;
   return material;
 }
 
-function loadPortalWallTexture(repeatX: number, repeatY: number): THREE.Texture {
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load(PORTAL_WALL_TEXTURE_URL, (loadedTexture) => {
-    configurePortalWallTexture(loadedTexture, repeatX, repeatY);
-  });
-
-  configurePortalWallTexture(texture, repeatX, repeatY);
-  return texture;
-}
-
-function configurePortalWallTexture(texture: THREE.Texture, repeatX: number, repeatY: number): void {
+function configurePortalWallTexture(texture: THREE.Texture, repeatX: number, repeatY: number): THREE.Texture {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -40,4 +37,5 @@ function configurePortalWallTexture(texture: THREE.Texture, repeatX: number, rep
   texture.userData.textureUrl = PORTAL_WALL_TEXTURE_URL;
   texture.userData.repeatX = repeatX;
   texture.userData.repeatY = repeatY;
+  return texture;
 }

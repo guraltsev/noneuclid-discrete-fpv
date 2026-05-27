@@ -5,11 +5,13 @@ import { buildDecorationMesh } from "./buildDecorationMesh";
 import { buildPortalMesh } from "./buildPortalMesh";
 import { createCeilingMaterial } from "./ceilingTexture";
 import { isGeodesciMarmotObjectSpec } from "../../world-objects/geodesciMarmot";
+import type { PreparedWorldAssets } from "./preloadWorldAssets";
 
 export interface BuildCellMeshOptions {
   readonly debugOptions: readonly DebugOptionId[];
   readonly eyeHeightMeters: number;
   readonly cellSideCounts: ReadonlyMap<string, number>;
+  readonly assets: PreparedWorldAssets;
 }
 
 export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOptions): THREE.Object3D {
@@ -27,8 +29,8 @@ export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOpt
   };
 
   group.add(buildFloorMesh(cell));
-  group.add(buildCeilingMesh(cell));
-  group.add(buildSideWalls(cell));
+  group.add(buildCeilingMesh(cell, options.assets));
+  group.add(buildSideWalls(cell, options.assets));
   group.add(buildFloorOutline(cell));
 
   if (hasDebugOption(options.debugOptions, "portal-panels")) {
@@ -40,7 +42,7 @@ export function buildCellMesh(cell: CompiledPrismCell, options: BuildCellMeshOpt
       continue;
     }
 
-    group.add(buildDecorationMesh(cell.id, objectSpec));
+    group.add(buildDecorationMesh(cell.id, objectSpec, options.assets));
   }
 
   return group;
@@ -73,7 +75,7 @@ function buildFloorMesh(cell: CompiledPrismCell): THREE.Object3D {
   return floor;
 }
 
-function buildCeilingMesh(cell: CompiledPrismCell): THREE.Object3D {
+function buildCeilingMesh(cell: CompiledPrismCell, assets: PreparedWorldAssets): THREE.Object3D {
   const shape = new THREE.Shape();
   const first = cell.baseVertices[0];
 
@@ -91,14 +93,14 @@ function buildCeilingMesh(cell: CompiledPrismCell): THREE.Object3D {
   const [minX, maxX, minZ, maxZ] = getBaseBounds(cell);
   const ceiling = new THREE.Mesh(
     geometry,
-    createCeilingMaterial(Math.max(1, (maxX - minX) / 8), Math.max(1, (maxZ - minZ) / 8)),
+    createCeilingMaterial(Math.max(1, (maxX - minX) / 8), Math.max(1, (maxZ - minZ) / 8), assets),
   );
   ceiling.name = `ceiling:${cell.id}`;
   ceiling.position.y = cell.heightMeters;
   return ceiling;
 }
 
-function buildSideWalls(cell: CompiledPrismCell): THREE.Object3D {
+function buildSideWalls(cell: CompiledPrismCell, assets: PreparedWorldAssets): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `walls:${cell.id}`;
 
@@ -114,6 +116,7 @@ function buildSideWalls(cell: CompiledPrismCell): THREE.Object3D {
           start,
           end,
           heightMeters: cell.heightMeters,
+          assets,
         }),
       );
       continue;

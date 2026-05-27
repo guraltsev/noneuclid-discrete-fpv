@@ -24,12 +24,12 @@ async function startApp(container: HTMLDivElement): Promise<void> {
   console.info(describeGeometrySpec(geometrySpec));
   const world = compileCellComplex(geometrySpec);
   installRuntimeDiagnostics(world, hasDebugOption(launchOptions.debugOptions, "runtime-diagnostics"));
-  await preloadWorldAssets(world);
+  const assets = await preloadWorldAssets(world);
   const appState = createInitialAppState(world);
 
   if (launchOptions.renderWorldPicker || launchOptions.debugEnabled) {
     renderLaunchControls(document.body, launchOptions);
   }
 
-  createThreeApp(container, appState, { debugOptions: launchOptions.debugOptions });
+  createThreeApp(container, appState, { debugOptions: launchOptions.debugOptions, assets });
 }

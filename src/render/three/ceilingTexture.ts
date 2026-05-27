@@ -1,10 +1,15 @@
 import * as THREE from "three";
 import { publicAssetUrl } from "../../glue/assetUrls";
+import type { PreparedWorldAssets } from "./preloadWorldAssets";
 
 export const CEILING_TEXTURE_FILE = "photo-wall-texture-pattern.jpg";
 export const CEILING_TEXTURE_URL = publicAssetUrl(CEILING_TEXTURE_FILE);
 
-export function createCeilingMaterial(repeatX: number, repeatY: number): THREE.MeshStandardMaterial {
+export function createCeilingMaterial(
+  repeatX: number,
+  repeatY: number,
+  assets: PreparedWorldAssets,
+): THREE.MeshStandardMaterial {
   const material = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     roughness: 0.98,
@@ -13,25 +18,17 @@ export function createCeilingMaterial(repeatX: number, repeatY: number): THREE.M
   });
   material.userData.textureUrl = CEILING_TEXTURE_URL;
 
-  if (typeof Image !== "undefined") {
-    material.map = loadCeilingTexture(repeatX, repeatY);
-    material.needsUpdate = true;
+  const preparedTexture = assets.getTexture(CEILING_TEXTURE_FILE);
+  if (!preparedTexture) {
+    throw new Error(`Ceiling texture was not preloaded: ${CEILING_TEXTURE_FILE}`);
   }
 
+  material.map = configureCeilingTexture(preparedTexture.clone(), repeatX, repeatY);
+  material.needsUpdate = true;
   return material;
 }
 
-function loadCeilingTexture(repeatX: number, repeatY: number): THREE.Texture {
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load(CEILING_TEXTURE_URL, (loadedTexture) => {
-    configureCeilingTexture(loadedTexture, repeatX, repeatY);
-  });
-
-  configureCeilingTexture(texture, repeatX, repeatY);
-  return texture;
-}
-
-function configureCeilingTexture(texture: THREE.Texture, repeatX: number, repeatY: number): void {
+function configureCeilingTexture(texture: THREE.Texture, repeatX: number, repeatY: number): THREE.Texture {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -40,4 +37,5 @@ function configureCeilingTexture(texture: THREE.Texture, repeatX: number, repeat
   texture.userData.textureUrl = CEILING_TEXTURE_URL;
   texture.userData.repeatX = repeatX;
   texture.userData.repeatY = repeatY;
+  return texture;
 }

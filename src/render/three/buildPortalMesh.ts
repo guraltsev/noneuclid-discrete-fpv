@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createPortalWallMaterial } from "./portalWallTexture";
+import type { PreparedWorldAssets } from "./preloadWorldAssets";
 
 export interface PortalWallMeshSpec {
   readonly portalId: string;
@@ -7,13 +8,18 @@ export interface PortalWallMeshSpec {
   readonly start: { readonly x: number; readonly z: number };
   readonly end: { readonly x: number; readonly z: number };
   readonly heightMeters: number;
+  readonly assets: PreparedWorldAssets;
 }
 
 export function buildPortalMesh(spec: PortalWallMeshSpec): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `portal:${spec.portalId}`;
   const edgeLength = Math.hypot(spec.end.x - spec.start.x, spec.end.z - spec.start.z);
-  const material = createPortalWallMaterial(Math.max(1, edgeLength / 8), Math.max(1, spec.heightMeters / 8));
+  const material = createPortalWallMaterial(
+    Math.max(1, edgeLength / 8),
+    Math.max(1, spec.heightMeters / 8),
+    spec.assets,
+  );
   group.userData = {
     kind: "portal-wall",
     portalId: spec.portalId,

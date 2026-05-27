@@ -1,21 +1,25 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { AssetObjectSpec, CellObjectSpec } from "../../cell-complex/specs";
-import { publicAssetUrl } from "../../glue/assetUrls";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
-import { requestSceneWarmup } from "./sceneWarmup";
+import type { PreparedGltfAsset, PreparedWorldAssets } from "./preloadWorldAssets";
 
-const gltfLoader = new GLTFLoader();
-
-export function buildDecorationMesh(cellId: string, objectSpec: CellObjectSpec): THREE.Object3D {
+export function buildDecorationMesh(
+  cellId: string,
+  objectSpec: CellObjectSpec,
+  assets: PreparedWorldAssets,
+): THREE.Object3D {
   if (objectSpec.kind !== "asset") {
     throw new Error(`Cannot build static decoration mesh for object kind "${objectSpec.kind}".`);
   }
 
-  return buildStaticAssetMesh(cellId, objectSpec);
+  return buildStaticAssetMesh(cellId, objectSpec, assets);
 }
 
-function buildStaticAssetMesh(cellId: string, objectSpec: AssetObjectSpec): THREE.Object3D {
+function buildStaticAssetMesh(
+  cellId: string,
+  objectSpec: AssetObjectSpec,
+  assets: PreparedWorldAssets,
+): THREE.Object3D {
   const group = new THREE.Group();
   group.name = `decoration:${objectSpec.id}`;
   group.position.set(objectSpec.position.x, objectSpec.position.y, objectSpec.position.z);
@@ -37,29 +41,27 @@ function buildStaticAssetMesh(cellId: string, objectSpec: AssetObjectSpec): THRE
   placeholder.name = `placeholder:${objectSpec.id}`;
   group.add(placeholder);
 
-  if (typeof window === "undefined" || typeof document === "undefined") {
-    return group;
+  diagnostics.recordAssetInstanceStart(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
+  const prepared = assets.instantiateGltf(objectSpec.assetPath);
+  if (!prepared) {
+    throw new Error(`Static asset was not preloaded: ${objectSpec.assetPath}`);
   }
 
-  diagnostics.recordAssetInstanceStart(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
-  gltfLoader.load(
-    publicAssetUrl(objectSpec.assetPath),
-    (gltf) => {
-      placeholder.removeFromParent();
-      disposeObject3D(placeholder);
-      gltf.scene.name = `asset:${objectSpec.id}`;
-      group.add(gltf.scene);
-      requestSceneWarmup(`static-asset:${cellId}/${objectSpec.id}`);
-      diagnostics.recordAssetInstanceComplete(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
-    },
-    undefined,
-    (error) => {
-      placeholder.name = `missing-asset:${objectSpec.id}`;
-      diagnostics.recordAssetInstanceError(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind, error);
-    },
-  );
-
+  replacePlaceholderWithPreparedAsset(group, placeholder, objectSpec, prepared);
+  diagnostics.recordAssetInstanceComplete(cellId, objectSpec.id, objectSpec.assetPath, objectSpec.kind);
   return group;
+}
+
+function replacePlaceholderWithPreparedAsset(
+  group: THREE.Group,
+  placeholder: THREE.Object3D,
+  objectSpec: AssetObjectSpec,
+  prepared: PreparedGltfAsset,
+): void {
+  placeholder.removeFromParent();
+  disposeObject3D(placeholder);
+  prepared.scene.name = `asset:${objectSpec.id}`;
+  group.add(prepared.scene);
 }
 
 function disposeObject3D(object: THREE.Object3D): void {

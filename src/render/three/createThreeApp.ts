@@ -13,7 +13,7 @@ import { buildCellMesh } from "./buildCellMesh";
 import { createDesktopControls } from "./desktopControls";
 import { prerenderCells } from "./prerenderCells";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
-import { installSceneWarmup } from "./sceneWarmup";
+import type { PreparedWorldAssets } from "./preloadWorldAssets";
 
 export interface ThreeApp {
   readonly scene: THREE.Scene;
@@ -23,6 +23,7 @@ export interface ThreeApp {
 
 export interface ThreeAppOptions {
   readonly debugOptions: readonly DebugOptionId[];
+  readonly assets: PreparedWorldAssets;
 }
 
 export function createThreeApp(container: HTMLElement, appState: AppState, options: ThreeAppOptions): ThreeApp {
@@ -34,6 +35,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 250);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.shadowMap.enabled = false;
   renderer.setSize(window.innerWidth, window.innerHeight);
   container.append(renderer.domElement);
   const controls = createDesktopControls(renderer.domElement);
@@ -43,14 +45,19 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   let playerPose = appState.playerPose;
 
   const light = new THREE.HemisphereLight(0xffffff, 0x304050, 2);
+  light.castShadow = false;
   scene.add(light);
 
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
   keyLight.position.set(3, 6, 4);
+  keyLight.castShadow = false;
   scene.add(keyLight);
 
   const cellMeshes = new Map<string, THREE.Object3D>();
   const cellSideCounts = new Map(appState.world.cells.map((cell) => [cell.id, cell.sideCount]));
+  const warmupViewsByCellId = new Map(
+    appState.world.cells.map((cell) => [cell.id, createCellWarmupViews(cell)] as const),
+  );
   const marmotRuntimes: GeodesciMarmotRuntime[] = [];
 
   for (const cell of appState.world.cells) {
@@ -58,6 +65,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       debugOptions: options.debugOptions,
       eyeHeightMeters: DEFAULT_PLAYER_EYE_HEIGHT_METERS,
       cellSideCounts,
+      assets: options.assets,
     });
     cellMesh.visible = false;
     cellMeshes.set(cell.id, cellMesh);
@@ -68,46 +76,13 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         continue;
       }
 
-      const runtime = createGeodesciMarmotRuntime(objectSpec, cell.id);
+      const runtime = createGeodesciMarmotRuntime(objectSpec, cell.id, options.assets);
       runtime.syncParent(cellMeshes);
       marmotRuntimes.push(runtime);
     }
   }
-
-  let scheduledWarmupReason: string | undefined;
-  let warmupTimerId: number | undefined;
-
-  installSceneWarmup({
-    request(reason) {
-      scheduledWarmupReason = scheduledWarmupReason ? `${scheduledWarmupReason}, ${reason}` : reason;
-
-      if (warmupTimerId !== undefined) {
-        return;
-      }
-
-      warmupTimerId = window.setTimeout(() => {
-        warmupTimerId = undefined;
-        const reasonText = scheduledWarmupReason ?? "unknown";
-        scheduledWarmupReason = undefined;
-        const startMs = performance.now();
-        applyCameraPose();
-        prerenderCells({
-          renderer,
-          scene,
-          camera,
-          cellMeshes,
-          activeCellId: playerPose.cellId,
-        });
-        diagnostics.recordWarmup(reasonText, performance.now() - startMs);
-      }, 0);
-    },
-    dispose() {
-      if (warmupTimerId !== undefined) {
-        window.clearTimeout(warmupTimerId);
-        warmupTimerId = undefined;
-      }
-    },
-  });
+  disableFrustumCulling(scene);
+  disableShadows(scene);
 
   function applyCameraPose(): void {
     camera.position.set(
@@ -118,13 +93,16 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     camera.rotation.set(playerPose.pitchRadians, playerPose.yawRadians, 0, "YXZ");
   }
 
+  const warmupStartMs = performance.now();
   prerenderCells({
     renderer,
     scene,
     camera,
     cellMeshes,
     activeCellId: playerPose.cellId,
+    warmupViewsByCellId,
   });
+  diagnostics.recordWarmup("startup", performance.now() - warmupStartMs);
 
   let visibleCellId: string | undefined = playerPose.cellId;
 
@@ -209,10 +187,6 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     scene,
     renderer,
     dispose() {
-      installSceneWarmup({
-        request() {},
-        dispose() {},
-      });
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", onResize);
       controls.dispose();
@@ -222,6 +196,49 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       renderer.dispose();
       renderer.domElement.remove();
     },
+  };
+}
+
+function disableFrustumCulling(root: THREE.Object3D): void {
+  root.traverse((object) => {
+    object.frustumCulled = false;
+  });
+}
+
+function disableShadows(root: THREE.Object3D): void {
+  root.traverse((object) => {
+    object.castShadow = false;
+    object.receiveShadow = false;
+  });
+}
+
+function createCellWarmupViews(cell: AppState["world"]["cells"][number]) {
+  const center = getCellCenter(cell);
+  const eyeY = Math.min(cell.heightMeters - 0.1, DEFAULT_PLAYER_EYE_HEIGHT_METERS);
+
+  return [0, Math.PI / 2, Math.PI, (Math.PI * 3) / 2].map((yawRadians) => ({
+    position: {
+      x: center.x,
+      y: eyeY,
+      z: center.z,
+    },
+    yawRadians,
+  }));
+}
+
+function getCellCenter(cell: AppState["world"]["cells"][number]): { readonly x: number; readonly z: number } {
+  let x = 0;
+  let z = 0;
+
+  for (const vertex of cell.baseVertices) {
+    x += vertex.x;
+    z += vertex.z;
+  }
+
+  const count = Math.max(1, cell.baseVertices.length);
+  return {
+    x: x / count,
+    z: z / count,
   };
 }
 
