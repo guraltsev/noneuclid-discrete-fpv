@@ -116,6 +116,8 @@ Expand breadth-first until `maxDepth`. For each child path:
 
 When `skipImmediateReverse` is true, skip the portal that directly returns through the previous step's target portal. This should be based on compiled portal ids and target metadata, not string guessing.
 
+`skipImmediateReverse` must be true by default
+
 ### 4. Milestone 1 tests
 
 Add `tests/cell-complex/portalPaths.test.ts`.
@@ -197,6 +199,7 @@ For each candidate path:
 - compare the entire transformed bound against every ancestor portal aperture required by the path,
 - reject only when the whole bound is outside a required half-space, slab, or vertical range,
 - never reject from a single center point, floor point, or decoration point.
+- allow for slight tolerance because otherwise in the cube model, the faces that wrap around a vertex will never be culled. Use the forbidden zone/2 tolerance to move the portal plane forward 
 
 If the conservative math is not ready, ship a no-op culler that returns all paths plus summaries. The public API and tests should still exist so later culling can be added behind the same contract.
 
