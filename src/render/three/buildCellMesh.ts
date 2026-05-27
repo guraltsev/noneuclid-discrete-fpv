@@ -10,7 +10,6 @@ import type { PreparedWorldAssets } from "./preloadWorldAssets";
 export interface BuildCellMeshOptions {
   readonly debugOptions: readonly DebugOptionId[];
   readonly eyeHeightMeters: number;
-  readonly cellSideCounts: ReadonlyMap<string, number>;
   readonly assets: PreparedWorldAssets;
 }
 
@@ -189,9 +188,8 @@ function buildPortalDebugPanels(cell: CompiledPrismCell, options: BuildCellMeshO
     panel.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), inward);
     panel.name = `portal-debug-panel:${cell.id}:${portal.id}`;
 
-    const targetSideCount = options.cellSideCounts.get(portal.targetCellId) ?? 0;
     const label = buildTextPlane(
-      `${portal.targetCellId}\nside ${formatReversedSideLabel(portal.targetPortalId, targetSideCount)}`,
+      `${portal.targetCellId}\nside ${formatSideLabel(portal.targetPortalId)}`,
       panelWidth * 0.9,
       panelHeight * 0.72,
     );
@@ -274,14 +272,12 @@ function buildSolidWallMesh(
   return mesh;
 }
 
-function formatReversedSideLabel(portalId: string, targetSideCount: number): string {
-  const match = /(?:side|edge)-(\d+)$/.exec(portalId);
+function formatSideLabel(portalId: string): string {
+  const match = /side-(\d+)$/.exec(portalId);
 
   if (!match) {
     return portalId;
   }
 
-  const sideIndex = Number.parseInt(match[1], 10);
-  const nextIndex = targetSideCount > 0 ? (sideIndex + 1) % targetSideCount : sideIndex + 1;
-  return `(${nextIndex},${sideIndex})`;
+  return match[1];
 }

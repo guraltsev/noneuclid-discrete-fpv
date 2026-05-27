@@ -54,7 +54,6 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   scene.add(keyLight);
 
   const cellMeshes = new Map<string, THREE.Object3D>();
-  const cellSideCounts = new Map(appState.world.cells.map((cell) => [cell.id, cell.sideCount]));
   const warmupViewsByCellId = new Map(
     appState.world.cells.map((cell) => [cell.id, createCellWarmupViews(cell)] as const),
   );
@@ -64,7 +63,6 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     const cellMesh = buildCellMesh(cell, {
       debugOptions: options.debugOptions,
       eyeHeightMeters: DEFAULT_PLAYER_EYE_HEIGHT_METERS,
-      cellSideCounts,
       assets: options.assets,
     });
     cellMesh.visible = false;

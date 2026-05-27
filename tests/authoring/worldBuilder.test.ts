@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createWorldBuilder, authorEdgeToSideIndex } from "../../src/authoring/worldBuilder";
+import { createWorldBuilder, authorSideToSideIndex } from "../../src/authoring/worldBuilder";
 import { createConvexPrismBaseVertices } from "../../src/cell-complex/prismBase";
 import { worldObjectLibrary } from "../../src/world-objects/library";
 
@@ -40,7 +40,7 @@ describe("worldBuilder", () => {
 
     builder.PolygonFace("front", "#f00", squareBase);
     builder.PolygonFace("right", "#0f0", squareBase);
-    builder.Portal("front", [1, 2], "right", [0, 3]);
+    builder.Portal("front", 1, "right", 3);
 
     const spec = builder.build();
     const front = spec.cells.find((cell) => cell.id === "front");
@@ -48,43 +48,43 @@ describe("worldBuilder", () => {
 
     expect(front?.portals).toEqual([
       {
-        id: "edge-1-2",
+        id: "side-1",
         sideIndex: 1,
         targetCellId: "right",
-        targetPortalId: "edge-0-3",
+        targetPortalId: "side-3",
       },
     ]);
     expect(right?.portals).toEqual([
       {
-        id: "edge-0-3",
+        id: "side-3",
         sideIndex: 3,
         targetCellId: "front",
-        targetPortalId: "edge-1-2",
+        targetPortalId: "side-1",
       },
     ]);
   });
 
-  it("maps authored edge pairs to the expected side indexes", () => {
-    expect(authorEdgeToSideIndex(4, [0, 1])).toBe(0);
-    expect(authorEdgeToSideIndex(4, [1, 2])).toBe(1);
-    expect(authorEdgeToSideIndex(4, [2, 3])).toBe(2);
-    expect(authorEdgeToSideIndex(4, [0, 3])).toBe(3);
+  it("maps authored side numbers to the expected side indexes", () => {
+    expect(authorSideToSideIndex(4, 0)).toBe(0);
+    expect(authorSideToSideIndex(4, 1)).toBe(1);
+    expect(authorSideToSideIndex(4, 2)).toBe(2);
+    expect(authorSideToSideIndex(4, 3)).toBe(3);
   });
 
-  it("rejects invalid edges and duplicate portal assignments clearly", () => {
+  it("rejects invalid sides and duplicate portal assignments clearly", () => {
     const builder = createWorldBuilder();
 
     builder.PolygonFace("front", "#f00", squareBase);
     builder.PolygonFace("right", "#0f0", squareBase);
 
-    expect(() => builder.Portal("front", [1, 3], "right", [0, 3])).toThrowError(
-      "Invalid edge [1, 3]; use consecutive pairs like [1, 2] or the wraparound pair [0, 3].",
+    expect(() => builder.Portal("front", 4, "right", 3)).toThrowError(
+      "Invalid side 4; expected an index in the range 0-3.",
     );
 
-    builder.Portal("front", [1, 2], "right", [0, 3]);
+    builder.Portal("front", 1, "right", 3);
 
-    expect(() => builder.Portal("front", [1, 2], "right", [0, 1])).toThrowError(
-      'Face "front" already has a portal on edge-1-2.',
+    expect(() => builder.Portal("front", 1, "right", 0)).toThrowError(
+      'Face "front" already has a portal on side-1.',
     );
   });
 

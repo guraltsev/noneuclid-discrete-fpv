@@ -7,8 +7,8 @@ square = [
 
 PolygonFace("torus-room", "#4fb8c7", square);
 
-Portal("torus-room", [0, 1], "torus-room", [2, 3]);
-Portal("torus-room", [1, 2], "torus-room", [0, 3]);
+Portal("torus-room", 0, "torus-room", 2);
+Portal("torus-room", 1, "torus-room", 3);
 
 torus_clock = clock("torus-center-clock", {
   position: [0, 0, 0],

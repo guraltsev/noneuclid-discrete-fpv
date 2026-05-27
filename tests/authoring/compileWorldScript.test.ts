@@ -49,7 +49,7 @@ OnFace("triangle-room", [
 
     expect(spec.cells).toHaveLength(6);
     expect(compiled.cells).toHaveLength(6);
-    expect(front?.portalsById.get("edge-1-2")?.targetCellId).toBe("right");
+    expect(front?.portalsById.get("side-1")?.targetCellId).toBe("right");
     expect(front?.objects).toHaveLength(2);
   });
 
@@ -66,12 +66,12 @@ square = [
 
 PolygonFace("front", "#f00", square);
 PolygonFace("right", "#0f0", square);
-Portal("front", [1, 3], "right", [0, 3]);
+Portal("front", 4, "right", 3);
 `,
         { sourceName: "bad.world.js" },
       ),
     ).toThrowError(
-      'World script "bad.world.js" failed: Invalid edge [1, 3]; use consecutive pairs like [1, 2] or the wraparound pair [0, 3].',
+      'World script "bad.world.js" failed: Invalid side 4; expected an index in the range 0-3.',
     );
   });
 });

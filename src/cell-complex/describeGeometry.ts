@@ -29,22 +29,12 @@ export function describeGeometrySpec(spec: CellComplexSpec): string {
 function describePortalConnection(sourceCell: PrismCellSpec, portal: AuthoredPortalSpec, spec: CellComplexSpec): string {
   const targetCell = spec.cells.find((cell) => cell.id === portal.targetCellId);
   const targetPortal = targetCell?.portals.find((candidate) => candidate.id === portal.targetPortalId);
-  const sourceSide = formatForwardSide(portal.sideIndex, sourceCell.baseVertices.length);
-  const targetSide = targetCell && targetPortal
-    ? formatReversedSide(targetPortal.sideIndex, targetCell.baseVertices.length)
-    : `portal=${portal.targetPortalId}`;
+  const sourceSide = formatSide(portal.sideIndex);
+  const targetSide = targetCell && targetPortal ? formatSide(targetPortal.sideIndex) : `portal=${portal.targetPortalId}`;
 
   return `(cell=${sourceCell.id}, side=${sourceSide}) -> (cell=${portal.targetCellId}, side=${targetSide})`;
 }
 
-function formatForwardSide(sideIndex: number, sideCount: number): string {
-  return `(${sideIndex},${nextSideVertex(sideIndex, sideCount)})`;
-}
-
-function formatReversedSide(sideIndex: number, sideCount: number): string {
-  return `(${nextSideVertex(sideIndex, sideCount)},${sideIndex})`;
-}
-
-function nextSideVertex(sideIndex: number, sideCount: number): number {
-  return (sideIndex + 1) % sideCount;
+function formatSide(sideIndex: number): string {
+  return String(sideIndex);
 }

@@ -15,7 +15,7 @@ describe("buildCellMesh", () => {
     expect(cell).toBeDefined();
     const roomA = cell!;
 
-    expect(roomA.portalBySideIndex.get(1)?.id).toBe("edge-1-2");
+    expect(roomA.portalBySideIndex.get(1)?.id).toBe("side-1");
 
     const preparedAssets: PreparedWorldAssets = {
       getTexture: () => new THREE.Texture(),
@@ -27,25 +27,24 @@ describe("buildCellMesh", () => {
     const mesh = buildCellMesh(roomA, {
       debugOptions: [],
       eyeHeightMeters: 1.6,
-      cellSideCounts: new Map(compiled.cells.map((compiledCell) => [compiledCell.id, compiledCell.sideCount])),
       assets: preparedAssets,
     });
 
     expect(mesh.userData.kind).toBe("cell");
     expect(mesh.userData.portalSides).toEqual([
       {
-        portalId: "edge-1-2",
+        portalId: "side-1",
         sideIndex: 1,
         targetCellId: "room-b",
-        targetPortalId: "edge-0-3",
+        targetPortalId: "side-3",
       },
     ]);
 
     const floor = mesh.getObjectByName("floor:room-a");
     const ceiling = mesh.getObjectByName("ceiling:room-a");
     const walls = mesh.getObjectByName("walls:room-a") as THREE.Group | null;
-    const portal = mesh.getObjectByName("portal:edge-1-2");
-    const portalMesh = portal?.getObjectByName("portal-wall:edge-1-2") as THREE.Mesh | undefined;
+    const portal = mesh.getObjectByName("portal:side-1");
+    const portalMesh = portal?.getObjectByName("portal-wall:side-1") as THREE.Mesh | undefined;
     const ceilingMesh = ceiling as THREE.Mesh | undefined;
 
     expect(floor).toBeDefined();

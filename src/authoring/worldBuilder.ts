@@ -3,7 +3,6 @@ import { createConvexPrismBaseVertices, type ConvexPrismBaseVertices } from "../
 import { isWorldLibraryObjectSpec, type WorldLibraryObjectSpec } from "../world-objects/library";
 
 const defaultHeightMeters = 15;
-type EdgePair = readonly [number, number];
 
 interface MutableCell {
   readonly id: string;
@@ -18,7 +17,7 @@ interface MutableCell {
 
 export interface WorldBuilder {
   PolygonFace(name: string, color: string, vertices: ConvexPrismBaseVertices): void;
-  Portal(face1: string, edge1: EdgePair, face2: string, edge2: EdgePair): void;
+  Portal(face1: string, side1: number, face2: string, side2: number): void;
   OnFace(faceName: string, objects: readonly WorldLibraryObjectSpec[]): void;
   build(): CellComplexSpec;
 }
@@ -54,7 +53,7 @@ export function createWorldBuilder(): WorldBuilder {
       portalAssignments.set(name, new Set());
     },
 
-    Portal(face1, edge1, face2, edge2) {
+    Portal(face1, side1, face2, side2) {
       const cell1 = cells.get(face1);
       const cell2 = cells.get(face2);
 
@@ -66,30 +65,30 @@ export function createWorldBuilder(): WorldBuilder {
         throw new Error(`Unknown face "${face2}" in Portal().`);
       }
 
-      const authoredEdge1 = normalizeEdgePair(face1, edge1, cell1.baseVertices.length);
-      const authoredEdge2 = normalizeEdgePair(face2, edge2, cell2.baseVertices.length);
+      const authoredSide1 = normalizeSideIndex(side1, cell1.baseVertices.length);
+      const authoredSide2 = normalizeSideIndex(side2, cell2.baseVertices.length);
 
-      if (face1 === face2 && authoredEdge1.portalId === authoredEdge2.portalId) {
-        throw new Error(`Portal("${face1}", [${edge1[0]}, ${edge1[1]}], ...) cannot connect an edge to itself.`);
+      if (face1 === face2 && authoredSide1.portalId === authoredSide2.portalId) {
+        throw new Error(`Portal("${face1}", ${side1}, ...) cannot connect a side to itself.`);
       }
 
-      assertUnassignedEdge(portalAssignments, face1, authoredEdge1.portalId);
-      assertUnassignedEdge(portalAssignments, face2, authoredEdge2.portalId);
+      assertUnassignedSide(portalAssignments, face1, authoredSide1.portalId);
+      assertUnassignedSide(portalAssignments, face2, authoredSide2.portalId);
 
       cell1.portals.push({
-        id: authoredEdge1.portalId,
-        sideIndex: authoredEdge1.sideIndex,
+        id: authoredSide1.portalId,
+        sideIndex: authoredSide1.sideIndex,
         targetCellId: face2,
-        targetPortalId: authoredEdge2.portalId,
+        targetPortalId: authoredSide2.portalId,
       });
       cell2.portals.push({
-        id: authoredEdge2.portalId,
-        sideIndex: authoredEdge2.sideIndex,
+        id: authoredSide2.portalId,
+        sideIndex: authoredSide2.sideIndex,
         targetCellId: face1,
-        targetPortalId: authoredEdge1.portalId,
+        targetPortalId: authoredSide1.portalId,
       });
-      portalAssignments.get(face1)?.add(authoredEdge1.portalId);
-      portalAssignments.get(face2)?.add(authoredEdge2.portalId);
+      portalAssignments.get(face1)?.add(authoredSide1.portalId);
+      portalAssignments.get(face2)?.add(authoredSide2.portalId);
     },
 
     OnFace(faceName, objects) {
@@ -134,32 +133,16 @@ export function createWorldBuilder(): WorldBuilder {
   };
 }
 
-export function authorEdgeToSideIndex(vertexCount: number, edge: EdgePair): number {
-  const [startIndex, endIndex] = edge;
-
-  if (!Number.isInteger(startIndex) || !Number.isInteger(endIndex)) {
-    throw new Error(`Invalid edge [${String(startIndex)}, ${String(endIndex)}]; edge indexes must be integers.`);
+export function authorSideToSideIndex(vertexCount: number, side: number): number {
+  if (!Number.isInteger(side)) {
+    throw new Error(`Invalid side ${String(side)}; side index must be an integer.`);
   }
 
-  if (startIndex < 0 || endIndex < 0 || startIndex >= vertexCount || endIndex >= vertexCount) {
-    throw new Error(`Invalid edge [${startIndex}, ${endIndex}]; expected indexes in the range 0-${vertexCount - 1}.`);
+  if (side < 0 || side >= vertexCount) {
+    throw new Error(`Invalid side ${side}; expected an index in the range 0-${vertexCount - 1}.`);
   }
 
-  if (startIndex >= endIndex) {
-    throw new Error(`Invalid edge [${startIndex}, ${endIndex}]; edge indexes must be written in ascending order.`);
-  }
-
-  if (startIndex === 0 && endIndex === vertexCount - 1) {
-    return vertexCount - 1;
-  }
-
-  if (endIndex === startIndex + 1) {
-    return startIndex;
-  }
-
-  throw new Error(
-    `Invalid edge [${startIndex}, ${endIndex}]; use consecutive pairs like [1, 2] or the wraparound pair [0, ${vertexCount - 1}].`,
-  );
+  return side;
 }
 
 function normalizeVertex(faceName: string, vertex: readonly number[], index: number): { readonly x: number; readonly z: number } {
@@ -176,19 +159,15 @@ function normalizeVertex(faceName: string, vertex: readonly number[], index: num
   return { x, z };
 }
 
-function normalizeEdgePair(faceName: string, edge: EdgePair, vertexCount: number): { readonly sideIndex: number; readonly portalId: string } {
-  if (!Array.isArray(edge) || edge.length !== 2) {
-    throw new Error(`Portal("${faceName}", ...) requires edges written as [startIndex, endIndex].`);
-  }
-
-  const sideIndex = authorEdgeToSideIndex(vertexCount, edge);
+function normalizeSideIndex(side: number, vertexCount: number): { readonly sideIndex: number; readonly portalId: string } {
+  const sideIndex = authorSideToSideIndex(vertexCount, side);
   return {
     sideIndex,
-    portalId: `edge-${edge[0]}-${edge[1]}`,
+    portalId: `side-${sideIndex}`,
   };
 }
 
-function assertUnassignedEdge(
+function assertUnassignedSide(
   portalAssignments: ReadonlyMap<string, ReadonlySet<string>>,
   faceName: string,
   portalId: string,

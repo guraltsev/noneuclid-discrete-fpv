@@ -116,7 +116,7 @@ describe("moveDynamicObject", () => {
 
   it("crosses a compiled tetrahedron portal without authored transforms", () => {
     const world = compileCellComplex(tetrahedron);
-    const approach = portalApproach(world, "face-a", "edge-0-1");
+    const approach = portalApproach(world, "face-a", "side-0");
     const object = dynamicObject("face-a", approach.start, identityMat3, simpleCollisionBox(0.05, 1, 0.05));
 
     const result = moveDynamicObject({ world, object, displacement: approach.displacement });

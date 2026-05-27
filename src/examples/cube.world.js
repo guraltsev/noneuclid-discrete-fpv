@@ -12,18 +12,18 @@ PolygonFace("left", "#d9b44f", square);
 PolygonFace("top", "#8f6ed5", square);
 PolygonFace("bottom", "#4fb8c7", square);
 
-Portal("front", [0, 1], "bottom", [2, 3]);
-Portal("front", [1, 2], "right", [0, 3]);
-Portal("front", [2, 3], "top", [0, 1]);
-Portal("front", [0, 3], "left", [1, 2]);
-Portal("right", [0, 1], "bottom", [1, 2]);
-Portal("right", [1, 2], "back", [0, 3]);
-Portal("right", [2, 3], "top", [1, 2]);
-Portal("back", [0, 1], "bottom", [0, 1]);
-Portal("back", [1, 2], "left", [0, 3]);
-Portal("back", [2, 3], "top", [2, 3]);
-Portal("left", [0, 1], "bottom", [0, 3]);
-Portal("left", [2, 3], "top", [0, 3]);
+Portal("front", 0, "bottom", 2);
+Portal("front", 1, "right", 3);
+Portal("front", 2, "top", 0);
+Portal("front", 3, "left", 1);
+Portal("right", 0, "bottom", 1);
+Portal("right", 1, "back", 3);
+Portal("right", 2, "top", 1);
+Portal("back", 0, "bottom", 0);
+Portal("back", 1, "left", 3);
+Portal("back", 2, "top", 2);
+Portal("left", 0, "bottom", 3);
+Portal("left", 2, "top", 3);
 
 front_house = house("front-house", {
   position: [-1.2, 0, 0.6],

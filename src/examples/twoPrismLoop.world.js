@@ -8,7 +8,7 @@ square = [
 PolygonFace("room-a", "#d95f5f", square);
 PolygonFace("room-b", "#5f79d9", square);
 
-Portal("room-a", [1, 2], "room-b", [0, 3]);
+Portal("room-a", 1, "room-b", 3);
 
 room_a_house = house("room-a-house", {
   position: [0, 0, 0],

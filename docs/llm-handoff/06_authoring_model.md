@@ -24,10 +24,10 @@ export const twoPrismLoop: CellComplexSpec = {
       base: squareBase(4),
       height: 3,
       sideFaces: [
-        { edge: "north", kind: "portal", portal: "a-north" },
-        { edge: "east", kind: "wall" },
-        { edge: "south", kind: "wall" },
-        { edge: "west", kind: "wall" }
+        { side: 0, kind: "portal", portal: "a-north" },
+        { side: 1, kind: "wall" },
+        { side: 2, kind: "wall" },
+        { side: 3, kind: "wall" }
       ],
       decorations: []
     }
@@ -35,8 +35,8 @@ export const twoPrismLoop: CellComplexSpec = {
   portals: [
     {
       id: "a-north",
-      from: { cell: "room-a", face: "north" },
-      to: { cell: "room-b", face: "south" },
+      from: { cell: "room-a", side: 0 },
+      to: { cell: "room-b", side: 2 },
       orientation: { turnDegrees: 0 }
     }
   ]
@@ -63,6 +63,9 @@ Avoid hidden defaults for mathematically meaningful choices. Defaults are accept
 ## Portal authoring
 
 In the first implementation, portal authoring should avoid arbitrary matrices.
+For a prism base with `n` vertices, side `i` means the side from vertex `i` to
+vertex `(i + 1) mod n`. Authoring should use side indexes `0` through `n - 1`,
+not unordered vertex pairs such as `(i, j)`.
 
 Prefer restricted descriptions:
 
@@ -108,9 +111,9 @@ The QR idea should be a separate authoring app, not part of the VR runtime.
 
 Possible workflow:
 
-1. Print face cards or edge cards with QR codes.
-2. Each QR code encodes a world id, face id, edge id, and orientation marker.
-3. The authoring app scans two compatible edge markers.
+1. Print face cards or side cards with QR codes.
+2. Each QR code encodes a world id, face id, side index, and orientation marker.
+3. The authoring app scans two compatible side markers.
 4. The app records a portal glueing proposal.
 5. The app exports JSON.
 6. The regular authoring validator checks the JSON.
