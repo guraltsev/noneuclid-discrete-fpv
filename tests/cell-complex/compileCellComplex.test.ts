@@ -12,6 +12,12 @@ import {
 import { almostEqualVec3, normalizeVec3, vec3 } from "../../src/math/vec3";
 
 describe("compileCellComplex", () => {
+  const triangleBase = [
+    { x: 0, z: 0 },
+    { x: 1, z: 0 },
+    { x: 0, z: 1 },
+  ];
+
   it("preserves the visible prism cells from the starter world", () => {
     const compiled = compileCellComplex(twoPrismLoop);
 
@@ -119,11 +125,7 @@ describe("compileCellComplex", () => {
         {
           id: "room",
           heightMeters: 2,
-          baseVertices: [
-            { x: 0, z: 0 },
-            { x: 1, z: 0 },
-            { x: 0, z: 1 },
-          ],
+          baseVertices: triangleBase,
           portals: [
             {
               id: "bad",
@@ -142,11 +144,7 @@ describe("compileCellComplex", () => {
         {
           id: "room",
           heightMeters: 2,
-          baseVertices: [
-            { x: 0, z: 0 },
-            { x: 1, z: 0 },
-            { x: 0, z: 1 },
-          ],
+          baseVertices: triangleBase,
           portals: [],
         },
       ],

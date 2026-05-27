@@ -19,6 +19,10 @@ export function validateAuthoringSpec(spec: CellComplexSpec): readonly string[] 
       errors.push(`Cell "${cell.id}" must have at least 3 base vertices.`);
     }
 
+    if (cell.baseVertices.length > 8) {
+      errors.push(`Cell "${cell.id}" must have at most 8 base vertices.`);
+    }
+
     const baseValidationError = validatePrismBase(cell.baseVertices);
 
     if (baseValidationError) {

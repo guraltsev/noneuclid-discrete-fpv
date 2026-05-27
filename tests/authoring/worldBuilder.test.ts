@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { createWorldBuilder, authorEdgeToSideIndex } from "../../src/authoring/worldBuilder";
+import { createConvexPrismBaseVertices } from "../../src/cell-complex/prismBase";
 import { worldObjectLibrary } from "../../src/world-objects/library";
+
+const squareBase = createConvexPrismBaseVertices([
+  [-1, -1],
+  [1, -1],
+  [1, 1],
+  [-1, 1],
+]);
 
 describe("worldBuilder", () => {
   it("creates polygon faces with expected colors and vertices", () => {
     const builder = createWorldBuilder();
 
-    builder.PolygonFace("front", "#d95f5f", [
-      [-1, -1],
-      [1, -1],
-      [1, 1],
-      [-1, 1],
-    ]);
+    builder.PolygonFace("front", "#d95f5f", squareBase);
 
     const spec = builder.build();
 
@@ -35,18 +38,8 @@ describe("worldBuilder", () => {
   it("creates reciprocal directed portals from a single Portal call", () => {
     const builder = createWorldBuilder();
 
-    builder.PolygonFace("front", "#f00", [
-      [-1, -1],
-      [1, -1],
-      [1, 1],
-      [-1, 1],
-    ]);
-    builder.PolygonFace("right", "#0f0", [
-      [-1, -1],
-      [1, -1],
-      [1, 1],
-      [-1, 1],
-    ]);
+    builder.PolygonFace("front", "#f00", squareBase);
+    builder.PolygonFace("right", "#0f0", squareBase);
     builder.Portal("front", [1, 2], "right", [0, 3]);
 
     const spec = builder.build();
@@ -81,18 +74,8 @@ describe("worldBuilder", () => {
   it("rejects invalid edges and duplicate portal assignments clearly", () => {
     const builder = createWorldBuilder();
 
-    builder.PolygonFace("front", "#f00", [
-      [-1, -1],
-      [1, -1],
-      [1, 1],
-      [-1, 1],
-    ]);
-    builder.PolygonFace("right", "#0f0", [
-      [-1, -1],
-      [1, -1],
-      [1, 1],
-      [-1, 1],
-    ]);
+    builder.PolygonFace("front", "#f00", squareBase);
+    builder.PolygonFace("right", "#0f0", squareBase);
 
     expect(() => builder.Portal("front", [1, 3], "right", [0, 3])).toThrowError(
       "Invalid edge [1, 3]; use consecutive pairs like [1, 2] or the wraparound pair [0, 3].",
@@ -108,12 +91,7 @@ describe("worldBuilder", () => {
   it("attaches library objects to the requested face", () => {
     const builder = createWorldBuilder();
 
-    builder.PolygonFace("front", "#f00", [
-      [-1, -1],
-      [1, -1],
-      [1, 1],
-      [-1, 1],
-    ]);
+    builder.PolygonFace("front", "#f00", squareBase);
 
     builder.OnFace("front", [
       worldObjectLibrary.house("front-house", {

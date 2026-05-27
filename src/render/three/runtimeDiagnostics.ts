@@ -121,7 +121,8 @@ export function installRuntimeDiagnostics(world: CompiledCellComplex, enabled: b
           kind: objectSpec.kind,
           assetPath: objectSpec.assetPath,
         })),
-      } satisfies CellDebugSummary,
+        firstEnteredAtMs: undefined,
+      } as CellDebugSummary,
     ]),
   );
 

@@ -1,15 +1,14 @@
 import type { AuthoredPortalSpec, CellComplexSpec, CellObjectSpec, PrismCellSpec } from "../cell-complex/specs";
+import { createConvexPrismBaseVertices, type ConvexPrismBaseVertices } from "../cell-complex/prismBase";
 import { isWorldLibraryObjectSpec, type WorldLibraryObjectSpec } from "../world-objects/library";
 
 const defaultHeightMeters = 15;
-
-type VertexTuple = readonly [number, number];
 type EdgePair = readonly [number, number];
 
 interface MutableCell {
   readonly id: string;
   readonly heightMeters: number;
-  readonly baseVertices: { readonly x: number; readonly z: number }[];
+  readonly baseVertices: readonly { readonly x: number; readonly z: number }[];
   readonly portals: AuthoredPortalSpec[];
   readonly visuals: {
     floorColor: string;
@@ -18,7 +17,7 @@ interface MutableCell {
 }
 
 export interface WorldBuilder {
-  PolygonFace(name: string, color: string, vertices: readonly VertexTuple[]): void;
+  PolygonFace(name: string, color: string, vertices: ConvexPrismBaseVertices): void;
   Portal(face1: string, edge1: EdgePair, face2: string, edge2: EdgePair): void;
   OnFace(faceName: string, objects: readonly WorldLibraryObjectSpec[]): void;
   build(): CellComplexSpec;
@@ -39,7 +38,8 @@ export function createWorldBuilder(): WorldBuilder {
         throw new Error(`PolygonFace("${name}") requires at least 3 vertices.`);
       }
 
-      const normalizedVertices = vertices.map((vertex, index) => normalizeVertex(name, vertex, index));
+      const validatedVertices = createConvexPrismBaseVertices(vertices);
+      const normalizedVertices = validatedVertices.map((vertex, index) => normalizeVertex(name, vertex, index));
 
       cells.set(name, {
         id: name,
