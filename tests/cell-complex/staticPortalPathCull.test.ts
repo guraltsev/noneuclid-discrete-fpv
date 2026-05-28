@@ -233,12 +233,18 @@ describe("staticallyCullPortalPathTables", () => {
     });
     const topSummary = result.summariesByRootCellId.get("top")!;
     const topTable = result.tables.tablesByRootCellId.get("top")!;
+    const keptPathCounts = [...result.summariesByRootCellId.values()].map((summary) => summary.keptPathCount);
+    const rejectedPathCounts = [...result.summariesByRootCellId.values()].map((summary) => summary.rejectedPathCount);
 
     expect(topTable.maxDepth).toBe(10);
     expect(topSummary.keptPathCount).toBe(topTable.paths.length);
-    expect(topSummary.keptPathCount).toBeLessThanOrEqual(50_000);
+    expect(topSummary.keptPathCount).toBeLessThanOrEqual(12_000);
+    expect(new Set(keptPathCounts)).toEqual(new Set([topSummary.keptPathCount]));
+    expect(new Set(rejectedPathCounts)).toEqual(new Set([topSummary.rejectedPathCount]));
     expect(topSummary.rejectedPathCount).toBeGreaterThan(0);
-    expect(topSummary.rejectedByReason.get("static-path-budget")).toBeGreaterThan(0);
+    expect([...topSummary.rejectedByReason.values()].reduce((total, count) => total + count, 0)).toBe(
+      topSummary.rejectedPathCount,
+    );
   });
 });
 

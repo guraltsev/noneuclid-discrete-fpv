@@ -439,7 +439,7 @@ function logPortalDebugInstall(
       return {
         rootCellId,
         maxDepth: table.maxDepth,
-        candidatePaths: summary?.inputPathCount ?? table.paths.length,
+        generatedPaths: summary?.inputPathCount ?? table.paths.length,
         keptPaths: summary?.keptPathCount ?? table.paths.length,
         rejectedPaths: summary?.rejectedPathCount ?? 0,
         maxAvailableDepth: Math.max(0, ...table.paths.map((path) => path.depth)),
