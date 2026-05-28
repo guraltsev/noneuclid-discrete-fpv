@@ -12,6 +12,7 @@ export interface LaunchOptions {
   readonly debugLevel: DebugLevelId;
   readonly portalPanelMode: PortalPanelModeId;
   readonly debugOptions: readonly DebugOptionId[];
+  readonly renderQualityEnabled: boolean;
 }
 
 export function readLaunchOptions(location: Location): LaunchOptions {
@@ -45,9 +46,14 @@ export function readLaunchOptions(location: Location): LaunchOptions {
     debugLevel: parseDebugLevel(params.get("debugLevel")) ?? (legacyDebugEnabled ? "basic" : "off"),
     portalPanelMode: parsePortalPanelMode(params.get("portalPanels")) ?? (legacyPortalPanelsEnabled ? "panel-with-text" : "none"),
     debugOptions,
+    renderQualityEnabled: isRenderQualityEnabled(params.get("renderQuality")),
   };
 }
 
 function isEnabled(rawValue: string | null): boolean {
   return rawValue !== null && rawValue !== "0" && rawValue !== "false" && rawValue !== "no";
+}
+
+function isRenderQualityEnabled(rawValue: string | null): boolean {
+  return rawValue === "1" || rawValue === "true" || rawValue === "yes" || rawValue === "on" || rawValue === "enabled";
 }

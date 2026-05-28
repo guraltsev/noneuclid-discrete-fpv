@@ -35,6 +35,7 @@ async function startApp(container: HTMLDivElement): Promise<void> {
     debugLevel: launchOptions.debugLevel,
     portalPanelMode: launchOptions.portalPanelMode,
     debugOptions: launchOptions.debugOptions,
+    renderQualityEnabled: launchOptions.renderQualityEnabled,
     assets,
   });
 

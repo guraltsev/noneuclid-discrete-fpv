@@ -3,6 +3,7 @@ import type { PortalClipData } from "./portalClipData";
 
 export interface PortalClipMaterialState {
   readonly clipData: PortalClipData;
+  readonly smoothClipEdges: boolean;
   readonly uniforms: {
     readonly portalClipTexture: { value: THREE.DataTexture };
     readonly portalViewportPixels: { value: THREE.Vector2 };
@@ -14,9 +15,11 @@ export interface PortalClipMaterialState {
 export function createPortalClipMaterialState(
   clipData: PortalClipData,
   viewportPixels: { readonly width: number; readonly height: number },
+  options: { readonly smoothClipEdges?: boolean } = {},
 ): PortalClipMaterialState {
   return {
     clipData,
+    smoothClipEdges: options.smoothClipEdges ?? true,
     uniforms: {
       portalClipTexture: { value: clipData.texture },
       portalViewportPixels: { value: new THREE.Vector2(viewportPixels.width, viewportPixels.height) },
@@ -70,10 +73,11 @@ function patchSinglePortalClipMaterial(
       shader.fragmentShader,
       state.clipData.maxVisiblePaths,
       state.clipData.maxClipVerticesPerPath,
+      state.smoothClipEdges,
     );
   };
   material.customProgramCacheKey = () =>
-    `portal-clip:${state.clipData.maxVisiblePaths}:${state.clipData.maxClipVerticesPerPath}`;
+    `portal-clip:${state.clipData.maxVisiblePaths}:${state.clipData.maxClipVerticesPerPath}:${state.smoothClipEdges ? "smooth" : "hard"}`;
   material.needsUpdate = true;
   return material;
 }
@@ -104,6 +108,7 @@ function patchFragmentShader(
   shader: string,
   maxVisiblePaths: number,
   maxClipVerticesPerPath: number,
+  smoothClipEdges: boolean,
 ): string {
   return shader
     .replace(
@@ -121,12 +126,23 @@ function patchFragmentShader(
     )
     .replace(
       "void main() {",
-      [
-        "void main() {",
-        "  if (portalFragmentShouldDiscard(gl_FragCoord.xy, vPortalClipIndex)) {",
-        "    discard;",
-        "  }",
-      ].join("\n"),
+      smoothClipEdges
+        ? [
+            "void main() {",
+            "  float portalClipCoverage = portalFragmentClipCoverage(gl_FragCoord.xy, vPortalClipIndex);",
+            "  if (portalClipCoverage <= 0.0) {",
+            "    discard;",
+            "  }",
+            "  if (portalClipCoverage < 1.0 && portalInterleavedGradientNoise(gl_FragCoord.xy) > portalClipCoverage) {",
+            "    discard;",
+            "  }",
+          ].join("\n")
+        : [
+            "void main() {",
+            "  if (portalFragmentShouldDiscard(gl_FragCoord.xy, vPortalClipIndex)) {",
+            "    discard;",
+            "  }",
+          ].join("\n"),
     );
 }
 
@@ -143,6 +159,10 @@ vec2 portalClipVertex(float clipIndex, int vertexIndex) {
 float portalClipVertexCount(float clipIndex) {
   vec2 uv = vec2(0.5 / portalMaxClipVerticesPerPath, (clipIndex + 0.5) / portalMaxVisiblePaths);
   return texture2D(portalClipTexture, uv).z;
+}
+
+float portalInterleavedGradientNoise(vec2 fragmentPixels) {
+  return fract(52.9829189 * fract(0.06711056 * fragmentPixels.x + 0.00583715 * fragmentPixels.y));
 }
 
 bool portalFragmentShouldDiscard(vec2 fragmentPixels, float clipIndex) {
@@ -194,6 +214,65 @@ bool portalFragmentShouldDiscard(vec2 fragmentPixels, float clipIndex) {
   }
 
   return false;
+}
+
+float portalFragmentClipCoverage(vec2 fragmentPixels, float clipIndex) {
+  if (clipIndex < -0.5 || clipIndex >= ${maxVisiblePaths}.0) {
+    return 0.0;
+  }
+
+  float vertexCount = portalClipVertexCount(clipIndex);
+  if (vertexCount < 2.5 || vertexCount > ${maxClipVerticesPerPath}.5) {
+    return 0.0;
+  }
+
+  vec2 pointNdc = vec2(
+    portalViewportPixels.x <= 0.0 ? 0.0 : (fragmentPixels.x / portalViewportPixels.x) * 2.0 - 1.0,
+    portalViewportPixels.y <= 0.0 ? 0.0 : (fragmentPixels.y / portalViewportPixels.y) * 2.0 - 1.0
+  );
+  float twiceArea = 0.0;
+
+  for (int index = 0; index < ${maxClipVerticesPerPath}; index++) {
+    if (float(index) >= vertexCount) {
+      break;
+    }
+    int nextIndex = index + 1;
+    if (float(nextIndex) >= vertexCount) {
+      nextIndex = 0;
+    }
+    vec2 current = portalClipVertex(clipIndex, index);
+    vec2 next = portalClipVertex(clipIndex, nextIndex);
+    twiceArea += current.x * next.y - next.x * current.y;
+  }
+
+  float clipSign = twiceArea < 0.0 ? -1.0 : 1.0;
+  float maxNdcUnitsPerPixel = max(
+    portalViewportPixels.x <= 0.0 ? 2.0 : 2.0 / portalViewportPixels.x,
+    portalViewportPixels.y <= 0.0 ? 2.0 : 2.0 / portalViewportPixels.y
+  );
+  float minSignedDistancePixels = 1000000.0;
+  for (int index = 0; index < ${maxClipVerticesPerPath}; index++) {
+    if (float(index) >= vertexCount) {
+      break;
+    }
+    int nextIndex = index + 1;
+    if (float(nextIndex) >= vertexCount) {
+      nextIndex = 0;
+    }
+    vec2 current = portalClipVertex(clipIndex, index);
+    vec2 next = portalClipVertex(clipIndex, nextIndex);
+    vec2 edge = next - current;
+    vec2 toPoint = pointNdc - current;
+    float edgeSide = clipSign * (edge.x * toPoint.y - edge.y * toPoint.x);
+    float edgeLengthNdc = max(length(edge), 0.0001);
+    float signedDistancePixels = edgeSide / (edgeLengthNdc * maxNdcUnitsPerPixel);
+    if (signedDistancePixels < -0.5) {
+      return 0.0;
+    }
+    minSignedDistancePixels = min(minSignedDistancePixels, signedDistancePixels);
+  }
+
+  return smoothstep(-0.5, 0.5, minSignedDistancePixels);
 }
 `;
 }

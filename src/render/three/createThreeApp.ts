@@ -42,6 +42,15 @@ import {
   updateCellRenderArchetypeInstances,
   type PortalInstanceRenderDebugState,
 } from "./renderPortalInstances";
+import {
+  createRenderQualityState,
+  getPortalViewportPixels,
+  getRendererCssCanvasSize,
+  getWindowCssCanvasSize,
+  renderAntialiasRequested,
+  resolveRenderQualityPixelRatio,
+  type RenderQualityState,
+} from "./renderQuality";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
 import type { PreparedWorldAssets } from "./preloadWorldAssets";
 import type { VisiblePortalPathRenderState } from "./renderState";
@@ -84,6 +93,7 @@ export interface ThreeAppOptions {
   readonly debugLevel: DebugLevelId;
   readonly portalPanelMode: PortalPanelModeId;
   readonly debugOptions: readonly DebugOptionId[];
+  readonly renderQualityEnabled: boolean;
   readonly assets: PreparedWorldAssets;
 }
 
@@ -100,11 +110,19 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   scene.environment = null;
   scene.fog = new THREE.Fog(0x2f2f2f, 0, 200);
 
-  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 250);
+  const initialCanvasSize = getWindowCssCanvasSize(window);
+  const camera = new THREE.PerspectiveCamera(
+    70,
+    initialCanvasSize.width / initialCanvasSize.height,
+    0.01,
+    250,
+  );
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const pixelRatio = resolveRenderQualityPixelRatio(options.renderQualityEnabled, window.devicePixelRatio);
+  const renderer = new THREE.WebGLRenderer({ antialias: renderAntialiasRequested });
   renderer.shadowMap.enabled = false;
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(pixelRatio);
+  renderer.setSize(initialCanvasSize.width, initialCanvasSize.height);
   container.append(renderer.domElement);
   const controls = createDesktopControls(renderer.domElement);
   const clock = new THREE.Clock();
@@ -148,7 +166,8 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   const portalClipData = createPortalClipData({ maxVisiblePaths });
   const portalClipMaterialState = createPortalClipMaterialState(
     portalClipData,
-    rendererSizeToViewportPixels(renderer.getSize(new THREE.Vector2())),
+    getPortalViewportPixels(renderer),
+    { smoothClipEdges: options.renderQualityEnabled },
   );
   let latestVisibleResult: ComputeVisiblePortalPathsResult | undefined;
   let portalInstanceRenderState: PortalInstanceRenderDebugState = {
@@ -239,12 +258,14 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   }
 
   function onResize(): void {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    const canvasSize = getWindowCssCanvasSize(window);
+    camera.aspect = canvasSize.width / canvasSize.height;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(canvasSize.width, canvasSize.height);
     updatePortalClipMaterialViewport(
       portalClipMaterialState,
-      rendererSizeToViewportPixels(renderer.getSize(new THREE.Vector2())),
+      getPortalViewportPixels(renderer),
     );
   }
 
@@ -435,7 +456,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       rootCellId: playerPose.cellId,
       pathTable: table,
       camera,
-      viewportPixels: rendererSizeToViewportPixels(renderer.getSize(new THREE.Vector2())),
+      viewportPixels: getPortalViewportPixels(renderer),
       options: {
         maxDepth: rootRenderPathMaxDepth,
         maxVisiblePaths,
@@ -668,7 +689,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
 
       clipPolygonOverlay.update(
         entries,
-        rendererSizeToViewportPixels(renderer.getSize(new THREE.Vector2())),
+        getRendererCssCanvasSize(renderer),
       );
     };
 
@@ -847,13 +868,14 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         };
       },
       DumpCameraPose() {
-        return dumpCameraPose(playerPose, camera, renderer);
+        return dumpCameraPose(playerPose, camera, renderer, options.renderQualityEnabled);
       },
       get state() {
         return {
           ...createPortalPathDebugState(playerPose.cellId, candidateTables, staticCull),
           visiblePortalPaths: latestVisibleResult?.summary,
           portalInstances: portalInstanceRenderState,
+          renderQuality: createRenderQualityState(renderer, pixelRatio, options.renderQualityEnabled),
           ShowCellPathRendersInstances: showCellPathRendersInstances,
         };
       },
@@ -1040,6 +1062,7 @@ interface PortalDebugHelpers {
   readonly state: ReturnType<typeof createPortalPathDebugState> & {
     readonly visiblePortalPaths?: VisiblePortalPathDebugSummary;
     readonly portalInstances: PortalInstanceRenderDebugState;
+    readonly renderQuality: RenderQualityState;
     readonly ShowCellPathRendersInstances: boolean;
   };
   readonly candidateTables: PortalPathTablesByRootCell;
@@ -1070,6 +1093,7 @@ interface CameraPoseDebugDump {
     readonly zoom?: number;
   };
   readonly viewportPixels: { readonly width: number; readonly height: number };
+  readonly renderQuality: RenderQualityState;
   readonly matrixWorld: readonly number[];
   readonly matrixWorldInverse: readonly number[];
   readonly projectionMatrix: readonly number[];
@@ -1102,6 +1126,7 @@ function dumpCameraPose(
   playerPose: PlayerPose,
   camera: THREE.PerspectiveCamera,
   renderer: THREE.WebGLRenderer,
+  renderQualityEnabled: boolean,
 ): CameraPoseDebugDump {
   camera.updateMatrixWorld(true);
   camera.updateProjectionMatrix();
@@ -1121,7 +1146,7 @@ function dumpCameraPose(
     y: eyePosition.y + forward.y,
     z: eyePosition.z + forward.z,
   };
-  const rendererSize = renderer.getSize(new THREE.Vector2());
+  const renderQuality = createRenderQualityState(renderer, renderer.getPixelRatio(), renderQualityEnabled);
   const dump: CameraPoseDebugDump = {
     rootCellId: playerPose.cellId,
     playerPosition: roundVec3(playerPose.position),
@@ -1149,9 +1174,10 @@ function dumpCameraPose(
       zoom: roundNumber(camera.zoom),
     },
     viewportPixels: {
-      width: rendererSize.x,
-      height: rendererSize.y,
+      width: renderQuality.portalViewportPixels.width,
+      height: renderQuality.portalViewportPixels.height,
     },
+    renderQuality,
     matrixWorld: roundMatrix(camera.matrixWorld),
     matrixWorldInverse: roundMatrix(camera.matrixWorldInverse),
     projectionMatrix: roundMatrix(camera.projectionMatrix),
@@ -1168,6 +1194,10 @@ function dumpCameraPose(
     pitch: `${dump.pitchRadians} rad / ${dump.pitchDegrees} deg`,
     threeCameraPosition: formatVec3(dump.threeCameraPosition),
     viewportPixels: `${dump.viewportPixels.width} x ${dump.viewportPixels.height}`,
+    cssCanvasSize: `${dump.renderQuality.cssCanvasSize.width} x ${dump.renderQuality.cssCanvasSize.height}`,
+    drawingBufferSize: `${dump.renderQuality.drawingBufferSize.width} x ${dump.renderQuality.drawingBufferSize.height}`,
+    pixelRatio: dump.renderQuality.pixelRatio,
+    antialiasRequested: dump.renderQuality.antialiasRequested,
     projection: `fov=${dump.projection.fovDegrees}, aspect=${dump.projection.aspect}, near=${dump.projection.near}, far=${dump.projection.far}`,
   });
 
@@ -1220,13 +1250,6 @@ function formatInspectedPathLine(
 function clipPolygonColorForIndex(index: number): string {
   const palette = ["#ff5252", "#3dd9b6", "#ffe066", "#5da9ff", "#ff8fab", "#b892ff"];
   return palette[index % palette.length];
-}
-
-function rendererSizeToViewportPixels(size: THREE.Vector2): { readonly width: number; readonly height: number } {
-  return {
-    width: size.x,
-    height: size.y,
-  };
 }
 
 function roundVec3(point: { readonly x: number; readonly y: number; readonly z: number }): {
