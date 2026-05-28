@@ -210,7 +210,11 @@ function classifyObjectKind(object: THREE.Mesh): CellRenderArchetypeKind | undef
     return "portal-frame";
   }
 
-  if (hasAncestorNamed(object, "portal-debug:") || object.name.startsWith("floor-outline:")) {
+  if (object.name.startsWith("portal-debug-panel:") || object.name.startsWith("portal-debug-label:")) {
+    return "portal-frame";
+  }
+
+  if (object.name.startsWith("floor-outline:")) {
     return undefined;
   }
 
