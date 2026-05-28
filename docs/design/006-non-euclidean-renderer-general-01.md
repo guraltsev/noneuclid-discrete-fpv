@@ -1097,7 +1097,20 @@ Test:
 
 # 16. Implementation milestones
 
+Current status as of 2026-05-27:
+
+```text
+Milestone 1: complete.
+Milestone 2: not complete.
+```
+
+Milestone 1 is done in the codebase. `src/cell-complex/portalPaths.ts` implements `buildPortalPathTables(...)`, per-root tables, stable path ids, parent links, destination-cell grouping, accumulated transforms, inverse render transforms, and default immediate-reverse filtering. `tests/cell-complex/portalPaths.test.ts` covers the milestone acceptance points, including cube path generation through depth 10 and finite transforms. The adjacent static-culling pass is also already implemented in `src/cell-complex/staticPortalPathCull.ts` and documented in `docs/issues/_closed/17_portal_path_tables_and_static_culling.md`; that is ahead of what Milestone 1 strictly required.
+
+Milestone 2 is still open. There is not yet a `src/render/three/visiblePortalPaths.ts` implementation or `tests/render-contract/visiblePortalPaths.test.ts`. The current app wires portal path tables into debug inspection and optional path overlays, but it does not yet compute camera-dependent visible portal paths, accumulated NDC apertures, screen-area rejection, or visible-path budgets for rendering.
+
 ## Milestone 1: path table only
+
+Status: complete.
 
 Implement:
 
@@ -1117,9 +1130,19 @@ no NaN transforms
 same destination via different paths preserved
 ```
 
+Implemented evidence:
+
+```text
+src/cell-complex/portalPaths.ts
+tests/cell-complex/portalPaths.test.ts
+docs/issues/_closed/17_portal_path_tables_and_static_culling.md
+```
+
 ---
 
 ## Milestone 2: visible path calculation
+
+Status: not complete.
 
 Implement:
 
@@ -1138,6 +1161,17 @@ behind-camera portal disappears
 nested aperture shrinks
 maxDepth works
 maxVisiblePaths works
+```
+
+Remaining work:
+
+```text
+create src/render/three/visiblePortalPaths.ts
+create tests/render-contract/visiblePortalPaths.test.ts
+project portal apertures into camera/NDC space
+carry accumulated aperture polygons from parent to child paths
+reject behind-camera, empty, and tiny portal windows
+sort and cap visible paths by the configured budget
 ```
 
 ---

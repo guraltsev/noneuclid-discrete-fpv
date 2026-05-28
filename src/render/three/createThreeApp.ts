@@ -262,8 +262,12 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
 
   function createPortalDebugRuntime(): { syncRootCell(): void; dispose(): void } {
     const portalPathDebugActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-path-debug");
+    const overlayActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-path-overlays");
 
     if (!portalPathDebugActive) {
+      if (overlayActive) {
+        logPortalOverlayGuide(false);
+      }
       uninstallPortalDebugHelpers();
       return {
         syncRootCell() {},
@@ -271,7 +275,6 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       };
     }
 
-    const overlayActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-path-overlays");
     const staticCullDebugActive = hasActiveDebugOption(debugLevel, debugOptions, "portal-static-cull-debug");
     const requestedMaxDepth = 10;
     console.info(`Portal path debug is building contextually culled path tables to depth ${requestedMaxDepth}.`);
@@ -388,6 +391,9 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       staticCull,
     });
     logPortalDebugInstall(candidateTables, staticCull, staticCullDebugActive, overlayActive);
+    if (overlayActive) {
+      logPortalOverlayGuide(true);
+    }
 
     return {
       syncRootCell() {
@@ -412,6 +418,21 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   }
 }
 
+function logPortalOverlayGuide(portalPathDebugActive: boolean): void {
+  const commands = [
+    "window.noneuclidPortalDebug.state",
+    'window.noneuclidPortalDebug.CheckCellPath("0 2 3")',
+    'window.noneuclidPortalDebug.ShowCellPath("0 2 3")',
+    "window.noneuclidPortalDebug.HideCellPaths()",
+  ];
+
+  console.info(
+    portalPathDebugActive
+      ? `Portal Path Overlays are enabled. Useful commands: ${commands.join("; ")}.`
+      : "Portal Path Overlays are enabled, but Portal Path Debug is required before overlay commands are installed.",
+  );
+}
+
 function logPortalDebugInstall(
   candidateTables: PortalPathTablesByRootCell,
   staticCull: StaticPortalPathCullResult,
@@ -424,7 +445,7 @@ function logPortalDebugInstall(
       `Contextual static culling is applied while expanding each path node to depth ${candidateTables.maxDepth}.`,
       "Use window.noneuclidPortalDebug.CheckCellPath(\"0 2 3\") to inspect a path.",
       overlayActive
-        ? "Use window.noneuclidPortalDebug.ShowCellPath(\"0 2 3\") to draw a red destination-cell overlay."
+        ? "Use window.noneuclidPortalDebug.ShowCellPath(\"0 2 3\") to draw a destination-cell overlay."
         : "Enable portal-path-overlays to allow ShowCellPath overlays.",
       staticCullDebugActive
         ? "Static-cull rejected path details are included."
