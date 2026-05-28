@@ -31,6 +31,7 @@ export interface MoveDynamicObjectResult {
 }
 
 export type PortalCrossingMode = "bounds" | "anchor";
+export const AUTONOMOUS_DYNAMIC_OBJECT_PORTAL_CROSSING_MODE: PortalCrossingMode = "anchor";
 
 export function moveDynamicObject(request: MoveDynamicObjectRequest): MoveDynamicObjectResult {
   const startCell = request.world.cellsById.get(request.object.cellId);

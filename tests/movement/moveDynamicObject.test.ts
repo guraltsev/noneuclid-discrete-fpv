@@ -5,7 +5,10 @@ import type { CellComplexSpec } from "../../src/cell-complex/specs";
 import { identityMat3, yawRigidTransform3 } from "../../src/math/rigidTransform3";
 import { cube, tetrahedron } from "../../src/authoring/exampleWorlds";
 import { vec3 } from "../../src/math/vec3";
-import { moveDynamicObject } from "../../src/movement/moveDynamicObject";
+import {
+  AUTONOMOUS_DYNAMIC_OBJECT_PORTAL_CROSSING_MODE,
+  moveDynamicObject,
+} from "../../src/movement/moveDynamicObject";
 import { simpleCollisionBox, type DynamicObjectState } from "../../src/movement/dynamicObject";
 
 const squareRoomBase = [
@@ -53,16 +56,56 @@ describe("moveDynamicObject", () => {
     expect(result.object.localPose.rotation.m10).toBeCloseTo(1);
   });
 
-  it("crosses a portal when body clearance exits the source cell before the anchor point fully does", () => {
+  it("crosses a portal in bounds mode when body clearance exits the source cell before the anchor point fully does", () => {
     const world = compileCellComplex(twoRoomsWithPortal());
     const object = dynamicObject("room-a", { x: 0.75, y: 0, z: 0.5 });
 
-    const result = moveDynamicObject({ world, object, displacement: { x: 0.2, y: 0, z: 0 } });
+    const result = moveDynamicObject({
+      world,
+      object,
+      displacement: { x: 0.2, y: 0, z: 0 },
+      portalCrossingMode: "bounds",
+    });
 
     expect(result.blocked).toBe(false);
     expect(result.crossedPortal).toBe(true);
     expect(result.object.cellId).toBe("room-b");
     expect(result.object.localPose.translation.x).toBeCloseTo(-1.05);
+  });
+
+  it("keeps anchor-crossing objects in the source cell until their traversal center crosses the portal plane", () => {
+    const world = compileCellComplex(twoRoomsWithPortal());
+    const object = dynamicObject("room-a", { x: 0.75, y: 0, z: 0.5 });
+
+    const result = moveDynamicObject({
+      world,
+      object,
+      displacement: { x: 0.2, y: 0, z: 0 },
+      portalCrossingMode: "anchor",
+    });
+
+    expect(result.blocked).toBe(false);
+    expect(result.crossedPortal).toBe(false);
+    expect(result.object.cellId).toBe("room-a");
+    expect(result.object.localPose.translation.x).toBeCloseTo(0.95);
+  });
+
+  it("crosses a portal in anchor mode once the traversal center crosses the portal plane", () => {
+    const world = compileCellComplex(twoRoomsWithPortal());
+    const object = dynamicObject("room-a", { x: 0.95, y: 0, z: 0.5 });
+
+    const result = moveDynamicObject({
+      world,
+      object,
+      displacement: { x: 0.1, y: 0, z: 0 },
+      portalCrossingMode: "anchor",
+    });
+
+    expect(result.blocked).toBe(false);
+    expect(result.crossedPortal).toBe(true);
+    expect(result.crossedPortalId).toBe("east");
+    expect(result.object.cellId).toBe("room-b");
+    expect(result.object.localPose.translation.x).toBeCloseTo(-0.95);
   });
 
   it("resolves blocked non-portal exits back to an in-bounds pose near the wall", () => {
@@ -86,6 +129,10 @@ describe("moveDynamicObject", () => {
 
     expect(result.blocked).toBe(true);
     expect(result.blockingReason).toBe("forbidden-zone");
+  });
+
+  it("keeps the autonomous dynamic-object traversal policy explicit and anchor-based", () => {
+    expect(AUTONOMOUS_DYNAMIC_OBJECT_PORTAL_CROSSING_MODE).toBe("anchor");
   });
 
   it("defaults SimpleCollisionBox offset to zero and honors explicit offsets", () => {

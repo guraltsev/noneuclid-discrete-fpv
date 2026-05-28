@@ -4,7 +4,10 @@ import type { CellObjectSpec, GeodesciMarmotObjectSpec } from "../cell-complex/s
 import { yawRigidTransform3, transformDirection3, type RigidTransform3 } from "../math/rigidTransform3";
 import { vec3 } from "../math/vec3";
 import type { DynamicObjectState } from "../movement/dynamicObject";
-import { moveDynamicObject } from "../movement/moveDynamicObject";
+import {
+  AUTONOMOUS_DYNAMIC_OBJECT_PORTAL_CROSSING_MODE,
+  moveDynamicObject,
+} from "../movement/moveDynamicObject";
 import { buildStaticMarmotProxy } from "../render/three/buildDecorationMesh";
 import { runtimeDiagnostics } from "../render/three/runtimeDiagnostics";
 import type { PreparedWorldAssets } from "../render/three/preloadWorldAssets";
@@ -86,6 +89,7 @@ export function createGeodesciMarmotRuntime(
         world,
         object: state,
         displacement,
+        portalCrossingMode: AUTONOMOUS_DYNAMIC_OBJECT_PORTAL_CROSSING_MODE,
       });
       state = result.object;
       applyObjectPose(root, state.localPose);
