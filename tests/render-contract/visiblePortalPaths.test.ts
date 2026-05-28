@@ -64,6 +64,30 @@ describe("computeVisiblePortalPaths", () => {
     expect(result.summary.clippedByCameraCount).toBe(1);
   });
 
+  it("clips a grazing parent aperture instead of making cube path 0 3 visible", () => {
+    const world = compileCellComplex(cube);
+    const table = buildPortalPathTables(world, { maxDepth: 2 }).tablesByRootCellId.get("front")!;
+    const pathZeroThree = table.paths.find((path) =>
+      path.steps.map((step) => step.sourcePortalSideIndex).join(" ") === "0 3",
+    );
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "front",
+      pathTable: table,
+      camera: createCamera(
+        { x: -4.460064, y: -1.749517, z: 1.45 },
+        { x: -5.379274, y: -1.358049, z: 1.407513 },
+        70,
+        803 / 1067,
+      ),
+      viewportPixels: { width: 803, height: 1067 },
+      options: defaultOptions({ maxDepth: 2, minPortalScreenAreaPixels: 4 }),
+    });
+
+    expect(pathZeroThree).toBeDefined();
+    expect(result.paths.map((path) => path.pathId)).not.toContain(pathZeroThree!.id);
+  });
+
   it("rejects a child path when its parent is not visible", () => {
     const world = compileCellComplex(twoPrismLoop);
     const table = buildPortalPathTables(world, { maxDepth: 2, skipImmediateReverse: false }).tablesByRootCellId.get("room-a")!;
@@ -198,8 +222,9 @@ function createCamera(
   position: { readonly x: number; readonly y: number; readonly z: number },
   lookAt: { readonly x: number; readonly y: number; readonly z: number },
   fovDegrees = 70,
+  aspect = 800 / 600,
 ): THREE.PerspectiveCamera {
-  const camera = new THREE.PerspectiveCamera(fovDegrees, 800 / 600, 0.01, 250);
+  const camera = new THREE.PerspectiveCamera(fovDegrees, aspect, 0.01, 250);
 
   camera.position.copy(worldPointToThree(position));
   camera.up.set(0, 1, 0);

@@ -191,22 +191,19 @@ export function projectRootSpacePointsToNdc(
     worldPointToThree(point).applyMatrix4(camera.matrixWorldInverse),
   );
   const near = "near" in camera && typeof camera.near === "number" ? camera.near : 0.01;
-  const behindCount = cameraSpacePoints.filter((point) => point.z > -near).length;
+  const clippedCameraSpacePoints = clipCameraSpacePolygonAgainstNearPlane(cameraSpacePoints, near);
 
-  if (behindCount === cameraSpacePoints.length) {
+  if (clippedCameraSpacePoints.length < 3) {
     return undefined;
   }
 
-  if (behindCount > 0) {
-    return fullScreenPolygonNdc;
-  }
-
-  return rootSpacePoints.map((point) => {
-    const projected = worldPointToThree(point).project(camera);
+  return clippedCameraSpacePoints.map((point) => {
+    const projected = new THREE.Vector4(point.x, point.y, point.z, 1).applyMatrix4(camera.projectionMatrix);
+    const w = projected.w || 1;
 
     return {
-      x: projected.x,
-      y: projected.y,
+      x: projected.x / w,
+      y: projected.y / w,
     };
   });
 }
@@ -372,6 +369,71 @@ function intersectEdge(start: Vec2, end: Vec2, startValue: number, endValue: num
     x: start.x + (end.x - start.x) * alpha,
     y: start.y + (end.y - start.y) * alpha,
   };
+}
+
+function clipCameraSpacePolygonAgainstNearPlane(
+  polygon: readonly THREE.Vector3[],
+  near: number,
+): readonly THREE.Vector3[] {
+  const clipped: THREE.Vector3[] = [];
+  const nearPlaneZ = -near;
+
+  for (let index = 0; index < polygon.length; index += 1) {
+    const current = polygon[index];
+    const next = polygon[(index + 1) % polygon.length];
+    const currentInside = current.z <= nearPlaneZ + polygonTolerance;
+    const nextInside = next.z <= nearPlaneZ + polygonTolerance;
+
+    if (currentInside && nextInside) {
+      clipped.push(next.clone());
+      continue;
+    }
+
+    if (currentInside !== nextInside) {
+      clipped.push(intersectCameraSpaceNearPlane(current, next, nearPlaneZ));
+    }
+
+    if (!currentInside && nextInside) {
+      clipped.push(next.clone());
+    }
+  }
+
+  return dedupeCameraSpaceVertices(clipped);
+}
+
+function intersectCameraSpaceNearPlane(
+  start: THREE.Vector3,
+  end: THREE.Vector3,
+  nearPlaneZ: number,
+): THREE.Vector3 {
+  const alpha = (nearPlaneZ - start.z) / (end.z - start.z);
+
+  return new THREE.Vector3(
+    start.x + (end.x - start.x) * alpha,
+    start.y + (end.y - start.y) * alpha,
+    nearPlaneZ,
+  );
+}
+
+function dedupeCameraSpaceVertices(vertices: readonly THREE.Vector3[]): THREE.Vector3[] {
+  const deduped: THREE.Vector3[] = [];
+
+  for (const vertex of vertices) {
+    const previous = deduped[deduped.length - 1];
+
+    if (!previous || previous.distanceTo(vertex) > polygonTolerance) {
+      deduped.push(vertex);
+    }
+  }
+
+  const first = deduped[0];
+  const last = deduped[deduped.length - 1];
+
+  if (first && last && deduped.length > 1 && first.distanceTo(last) <= polygonTolerance) {
+    deduped.pop();
+  }
+
+  return deduped;
 }
 
 function dedupePolygonVertices(vertices: readonly Vec2[]): Vec2[] {
