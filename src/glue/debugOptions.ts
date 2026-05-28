@@ -15,6 +15,11 @@ export const debugOptionDefinitions = [
     description: "Include static portal culling summaries and rejected path details.",
   },
   {
+    id: "portal-visible-path-debug",
+    label: "Portal Visible Path Debug",
+    description: "Compute live camera-visible portal paths and show compact per-frame counts.",
+  },
+  {
     id: "portal-path-overlays",
     label: "Portal Path Overlays",
     description: "Allow temporary visual overlays for inspected portal paths.",

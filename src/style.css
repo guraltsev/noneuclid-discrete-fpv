@@ -110,3 +110,19 @@ body {
   gap: 8px;
   padding-top: 6px;
 }
+
+.debug-overlay {
+  position: fixed;
+  top: 56px;
+  left: 12px;
+  z-index: 9;
+  min-width: 260px;
+  padding: 6px 8px;
+  border: 1px solid rgb(143 184 192 / 55%);
+  border-radius: 4px;
+  background: rgb(16 24 32 / 82%);
+  color: #f4fbfd;
+  font: 13px/1.25 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  pointer-events: none;
+  white-space: pre-line;
+}

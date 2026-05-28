@@ -1,0 +1,240 @@
+import * as THREE from "three";
+import { describe, expect, it } from "vitest";
+import { cube, twoPrismLoop } from "../../src/authoring/exampleWorlds";
+import { compileCellComplex } from "../../src/cell-complex/compileCellComplex";
+import { buildPortalPathTables } from "../../src/cell-complex/portalPaths";
+import {
+  clipConvexPolygonByConvexPolygon,
+  computeVisiblePortalPaths,
+  describeVisiblePortalPath,
+  type ComputeVisiblePortalPathsResult,
+} from "../../src/render/three/visiblePortalPaths";
+import { worldPointToThree } from "../../src/render/three/worldAxes";
+
+describe("computeVisiblePortalPaths", () => {
+  it("includes the root path when requested", () => {
+    const world = compileCellComplex(twoPrismLoop);
+    const table = buildPortalPathTables(world, { maxDepth: 1 }).tablesByRootCellId.get("room-a")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "room-a",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: 1, y: 0, z: 1.6 }),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions({ includeRootCell: true }),
+    });
+
+    expect(result.paths[0]).toMatchObject({
+      pathId: 0,
+      destinationCellId: "room-a",
+      depth: 0,
+    });
+    expect(result.summary.visiblePathCountByDepth).toContainEqual({ depth: 0, count: 1 });
+  });
+
+  it("marks a first-hop portal in front of the camera visible", () => {
+    const world = compileCellComplex(twoPrismLoop);
+    const table = buildPortalPathTables(world, { maxDepth: 1 }).tablesByRootCellId.get("room-a")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "room-a",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: 1, y: 0, z: 1.6 }),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions(),
+    });
+
+    expect(result.paths.map((path) => path.pathId)).toContain(1);
+    expect(result.visiblePathById.get(1)?.screenAreaPixels).toBeGreaterThan(0);
+  });
+
+  it("rejects a portal fully behind the camera", () => {
+    const world = compileCellComplex(twoPrismLoop);
+    const table = buildPortalPathTables(world, { maxDepth: 1 }).tablesByRootCellId.get("room-a")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "room-a",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: -1, y: 0, z: 1.6 }),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions(),
+    });
+
+    expect(result.paths.map((path) => path.pathId)).not.toContain(1);
+    expect(result.summary.clippedByCameraCount).toBe(1);
+  });
+
+  it("rejects a child path when its parent is not visible", () => {
+    const world = compileCellComplex(twoPrismLoop);
+    const table = buildPortalPathTables(world, { maxDepth: 2, skipImmediateReverse: false }).tablesByRootCellId.get("room-a")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "room-a",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: -1, y: 0, z: 1.6 }),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions({ maxDepth: 2 }),
+    });
+
+    expect(table.pathsById.get(2)?.parentPathId).toBe(1);
+    expect(result.paths.map((path) => path.pathId)).not.toContain(2);
+  });
+
+  it("keeps nested aperture area from growing beyond the parent aperture", () => {
+    const world = compileCellComplex(cube);
+    const table = buildPortalPathTables(world, { maxDepth: 2 }).tablesByRootCellId.get("front")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "front",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: 2, y: 2, z: 1.6 }, 110),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions({ maxDepth: 2, minPortalScreenAreaPixels: 0 }),
+    });
+    const child = result.paths.find((path) => path.depth === 2);
+
+    expect(child).toBeDefined();
+    expect(child!.screenAreaPixels).toBeLessThanOrEqual(
+      result.visiblePathById.get(table.pathsById.get(child!.pathId)!.parentPathId!)!.screenAreaPixels + 1e-6,
+    );
+  });
+
+  it("limits discovery by maxDepth", () => {
+    const world = compileCellComplex(cube);
+    const table = buildPortalPathTables(world, { maxDepth: 3 }).tablesByRootCellId.get("front")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "front",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: 2, y: 2, z: 1.6 }, 110),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions({ maxDepth: 1, minPortalScreenAreaPixels: 0 }),
+    });
+
+    expect(Math.max(...result.paths.map((path) => path.depth))).toBeLessThanOrEqual(1);
+  });
+
+  it("limits reported visible paths by maxVisiblePaths and sets budgetExhausted", () => {
+    const world = compileCellComplex(cube);
+    const table = buildPortalPathTables(world, { maxDepth: 2 }).tablesByRootCellId.get("front")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "front",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: 2, y: 2, z: 1.6 }, 110),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions({ maxDepth: 2, maxVisiblePaths: 1, minPortalScreenAreaPixels: 0 }),
+    });
+
+    expect(result.paths).toHaveLength(1);
+    expect(result.summary.budgetExhausted).toBe(true);
+    expect(result.summary.clippedByBudgetCount).toBeGreaterThan(0);
+  });
+
+  it("keeps two visible paths to the same destination as distinct visible paths", () => {
+    const world = compileCellComplex(cube);
+    const table = buildPortalPathTables(world, { maxDepth: 2 }).tablesByRootCellId.get("front")!;
+    const result = computeVisiblePortalPaths({
+      world,
+      rootCellId: "front",
+      pathTable: table,
+      camera: createCamera({ x: 0, y: 0, z: 1.6 }, { x: 2, y: 2, z: 1.6 }, 120),
+      viewportPixels: { width: 800, height: 600 },
+      options: defaultOptions({ maxDepth: 2, minPortalScreenAreaPixels: 0 }),
+    });
+    const duplicateDestination = [...groupByDestination(result.paths).values()].find((paths) => paths.length > 1);
+
+    expect(duplicateDestination).toBeDefined();
+    expect(new Set(duplicateDestination?.map((path) => path.pathId)).size).toBe(duplicateDestination?.length);
+  });
+
+  it("reports live ShowCellPath-style visibility only when the matched path id is in the latest result", () => {
+    const visible = fakeVisibleResult([1]);
+
+    expect(describeVisiblePortalPath(1, visible)).toMatchObject({
+      currentlyVisible: true,
+      screenAreaPixels: 12,
+    });
+    expect(describeVisiblePortalPath(2, visible)).toEqual({ currentlyVisible: false });
+  });
+});
+
+describe("clipConvexPolygonByConvexPolygon", () => {
+  it("clips a convex polygon deterministically by a parent aperture", () => {
+    const clipped = clipConvexPolygonByConvexPolygon(
+      [
+        { x: -2, y: -0.5 },
+        { x: 0.5, y: -0.5 },
+        { x: 0.5, y: 0.5 },
+        { x: -2, y: 0.5 },
+      ],
+      [
+        { x: -1, y: -1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 1 },
+        { x: -1, y: 1 },
+      ],
+    );
+
+    expect(clipped.every((point) => point.x >= -1 - 1e-9 && point.x <= 1 + 1e-9)).toBe(true);
+    expect(clipped).toHaveLength(4);
+  });
+});
+
+function defaultOptions(
+  overrides: Partial<Parameters<typeof computeVisiblePortalPaths>[0]["options"]> = {},
+): Parameters<typeof computeVisiblePortalPaths>[0]["options"] {
+  return {
+    maxDepth: 1,
+    maxVisiblePaths: 100,
+    minPortalScreenAreaPixels: 1,
+    includeRootCell: true,
+    sortMode: "depth-then-area",
+    ...overrides,
+  };
+}
+
+function createCamera(
+  position: { readonly x: number; readonly y: number; readonly z: number },
+  lookAt: { readonly x: number; readonly y: number; readonly z: number },
+  fovDegrees = 70,
+): THREE.PerspectiveCamera {
+  const camera = new THREE.PerspectiveCamera(fovDegrees, 800 / 600, 0.01, 250);
+
+  camera.position.copy(worldPointToThree(position));
+  camera.up.set(0, 1, 0);
+  camera.lookAt(worldPointToThree(lookAt));
+  camera.updateMatrixWorld(true);
+  camera.updateProjectionMatrix();
+
+  return camera;
+}
+
+function groupByDestination(paths: ComputeVisiblePortalPathsResult["paths"]): Map<string, ComputeVisiblePortalPathsResult["paths"]> {
+  const groups = new Map<string, ComputeVisiblePortalPathsResult["paths"]>();
+
+  for (const path of paths) {
+    groups.set(path.destinationCellId, [...(groups.get(path.destinationCellId) ?? []), path]);
+  }
+
+  return groups;
+}
+
+function fakeVisibleResult(pathIds: readonly number[]): Pick<ComputeVisiblePortalPathsResult, "visiblePathById"> {
+  return {
+    visiblePathById: new Map(
+      pathIds.map((pathId) => [
+        pathId,
+        {
+          pathId,
+          destinationCellId: "room-b",
+          depth: 1,
+          rootFromDestinationMatrix: new THREE.Matrix4(),
+          clipPolygonNdc: [],
+          clipRectNdc: { minX: -0.1, minY: -0.1, maxX: 0.1, maxY: 0.1 },
+          screenAreaPixels: 12,
+        },
+      ]),
+    ),
+  };
+}
