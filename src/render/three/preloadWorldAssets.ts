@@ -4,6 +4,7 @@ import { publicAssetUrl } from "../../glue/assetUrls";
 import { PORTAL_WALL_TEXTURE_FILE } from "./portalWallTexture";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export interface PreparedGltfAsset {
@@ -26,6 +27,7 @@ export async function preloadWorldAssets(world: CompiledCellComplex): Promise<Pr
     if (cell.floorMaterial.kind === "floor-texture") {
       for (const assetPath of [
         cell.floorMaterial.colorTexturePath,
+        cell.floorMaterial.normalTexturePath,
         cell.floorMaterial.bumpTexturePath,
         cell.floorMaterial.roughnessTexturePath,
       ]) {
@@ -42,6 +44,7 @@ export async function preloadWorldAssets(world: CompiledCellComplex): Promise<Pr
 
   const gltfLoader = new GLTFLoader();
   const textureLoader = new THREE.TextureLoader();
+  const exrLoader = new EXRLoader();
 
   await Promise.all([
     ...[PORTAL_WALL_TEXTURE_FILE].map((assetPath) => {
@@ -62,6 +65,21 @@ export async function preloadWorldAssets(world: CompiledCellComplex): Promise<Pr
       if (isTextureAssetPath(assetPath)) {
         diagnostics.recordPreloadStart(assetPath, "texture");
         return textureLoader.loadAsync(publicAssetUrl(assetPath)).then(
+          (texture) => {
+            textures.set(assetPath, texture);
+            diagnostics.recordPreloadComplete(assetPath, "texture");
+            return texture;
+          },
+          (error: unknown) => {
+            diagnostics.recordPreloadError(assetPath, "texture", error);
+            throw error;
+          },
+        );
+      }
+
+      if (isExrTextureAssetPath(assetPath)) {
+        diagnostics.recordPreloadStart(assetPath, "texture");
+        return exrLoader.loadAsync(publicAssetUrl(assetPath)).then(
           (texture) => {
             textures.set(assetPath, texture);
             diagnostics.recordPreloadComplete(assetPath, "texture");
@@ -110,4 +128,8 @@ export async function preloadWorldAssets(world: CompiledCellComplex): Promise<Pr
 
 function isTextureAssetPath(assetPath: string): boolean {
   return /\.(avif|jpe?g|png|webp)$/i.test(assetPath);
+}
+
+function isExrTextureAssetPath(assetPath: string): boolean {
+  return /\.exr$/i.test(assetPath);
 }

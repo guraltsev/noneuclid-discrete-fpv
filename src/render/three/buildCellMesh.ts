@@ -93,6 +93,21 @@ function buildFloorMesh(cell: CompiledPrismCell, assets: PreparedWorldAssets): T
     material.userData.textureUrl = cell.floorMaterial.colorTexturePath;
   }
 
+  if (cell.floorMaterial.kind === "floor-texture" && cell.floorMaterial.normalTexturePath) {
+    const preparedNormalTexture = assets.getTexture(cell.floorMaterial.normalTexturePath);
+
+    if (!preparedNormalTexture) {
+      throw new Error(`Floor normal texture was not preloaded: ${cell.floorMaterial.normalTexturePath}`);
+    }
+
+    const texture = preparedNormalTexture.clone();
+    texture.colorSpace = THREE.NoColorSpace;
+    configureRepeatedTexture(texture, cell.baseVertices, cell.floorMaterial.tileSizeMeters);
+    material.normalMap = texture;
+    material.normalScale = new THREE.Vector2(1.1, 1.1);
+    material.userData.normalTextureUrl = cell.floorMaterial.normalTexturePath;
+  }
+
   if (cell.floorMaterial.kind === "floor-texture" && cell.floorMaterial.bumpTexturePath) {
     const preparedBumpTexture = assets.getTexture(cell.floorMaterial.bumpTexturePath);
 
@@ -104,7 +119,7 @@ function buildFloorMesh(cell: CompiledPrismCell, assets: PreparedWorldAssets): T
     texture.colorSpace = THREE.NoColorSpace;
     configureRepeatedTexture(texture, cell.baseVertices, cell.floorMaterial.tileSizeMeters);
     material.bumpMap = texture;
-    material.bumpScale = 0.12;
+    material.bumpScale = 0.35;
     material.userData.bumpTextureUrl = cell.floorMaterial.bumpTexturePath;
   }
 

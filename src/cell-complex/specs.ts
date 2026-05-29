@@ -43,6 +43,7 @@ export interface FloorTextureMaterialSpec {
   readonly floorColor: string;
   readonly tileSizeMeters: number;
   readonly colorTexturePath?: string;
+  readonly normalTexturePath?: string;
   readonly bumpTexturePath?: string;
   readonly roughnessTexturePath?: string;
 }

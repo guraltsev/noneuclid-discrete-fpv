@@ -7,6 +7,7 @@ export interface FloorTextureDefinition {
   readonly floorColor: string;
   readonly defaultTileSizeMeters: number;
   readonly colorTexturePath?: string;
+  readonly normalTexturePath?: string;
   readonly bumpTexturePath?: string;
   readonly roughnessTexturePath?: string;
 }
@@ -30,6 +31,7 @@ const floorTextureDefinitions = {
     floorColor: "#5b8f48",
     defaultTileSizeMeters: 60,
     colorTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_diffuse_4k.jpg",
+    normalTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_nor_gl_4k.exr",
     bumpTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_disp_4k.png",
     roughnessTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_rough_4k.jpg",
   },
@@ -38,6 +40,7 @@ const floorTextureDefinitions = {
     floorColor: "#59633d",
     defaultTileSizeMeters: 48,
     colorTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_diffuse_4k.jpg",
+    normalTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_nor_gl_4k.exr",
     bumpTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_disp_4k.png",
     roughnessTexturePath: "textures/forest_leaves_02_4k/textures/forest_leaves_02_rough_4k.jpg",
   },
@@ -46,6 +49,7 @@ const floorTextureDefinitions = {
     floorColor: "#7b7f77",
     defaultTileSizeMeters: 40,
     colorTexturePath: "textures/ganges_river_pebbles_4k/textures/ganges_river_pebbles_diff_4k.jpg",
+    normalTexturePath: "textures/ganges_river_pebbles_4k/textures/ganges_river_pebbles_nor_gl_4k.exr",
     bumpTexturePath: "textures/ganges_river_pebbles_4k/textures/ganges_river_pebbles_disp_4k.png",
     roughnessTexturePath: "textures/ganges_river_pebbles_4k/textures/ganges_river_pebbles_disp_4k.png",
   },
@@ -54,6 +58,7 @@ const floorTextureDefinitions = {
     floorColor: "#9b8d6e",
     defaultTileSizeMeters: 48,
     colorTexturePath: "textures/gravelly_sand_4k/textures/gravelly_sand_diff_4k.jpg",
+    normalTexturePath: "textures/gravelly_sand_4k/textures/gravelly_sand_nor_gl_4k.exr",
     bumpTexturePath: "textures/gravelly_sand_4k/textures/gravelly_sand_disp_4k.png",
     roughnessTexturePath: "textures/gravelly_sand_4k/textures/gravelly_sand_disp_4k.png",
   },
@@ -62,6 +67,7 @@ const floorTextureDefinitions = {
     floorColor: "#8b4e3f",
     defaultTileSizeMeters: 48,
     colorTexturePath: "textures/red_mud_stones_4k/textures/red_mud_stones_diff_4k.jpg",
+    normalTexturePath: "textures/red_mud_stones_4k/textures/red_mud_stones_nor_gl_4k.exr",
     bumpTexturePath: "textures/red_mud_stones_4k/textures/red_mud_stones_disp_4k.png",
     roughnessTexturePath: "textures/red_mud_stones_4k/textures/red_mud_stones_rough_4k.jpg",
   },
@@ -70,6 +76,7 @@ const floorTextureDefinitions = {
     floorColor: "#d8dedf",
     defaultTileSizeMeters: 60,
     colorTexturePath: "textures/snow_02_4k/textures/snow_02_diff_4k.jpg",
+    normalTexturePath: "textures/snow_02_4k/textures/snow_02_nor_gl_4k.exr",
     bumpTexturePath: "textures/snow_02_4k/textures/snow_02_disp_4k.png",
     roughnessTexturePath: "textures/snow_02_4k/textures/snow_02_rough_4k.jpg",
   },
@@ -105,6 +112,7 @@ export const worldFloorTextureLibrary: WorldFloorTextureLibrary = {
       floorColor: options.floorColor ?? definition.floorColor,
       tileSizeMeters: options.tileSize ?? definition.defaultTileSizeMeters,
       colorTexturePath: definition.colorTexturePath,
+      normalTexturePath: definition.normalTexturePath,
       bumpTexturePath: definition.bumpTexturePath,
       roughnessTexturePath: definition.roughnessTexturePath,
     });
