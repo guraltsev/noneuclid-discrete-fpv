@@ -18,7 +18,14 @@ export type WorldLibraryObjectSpec = CellObjectSpec & {
 export interface WorldObjectLibrary {
   readonly small_house: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
   readonly tree: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly tree_swirl: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
   readonly grass: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly bench: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly bicycle: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly flower_group: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly flower_pot: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly stop_sign: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
+  readonly traffic_cone: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
   readonly geo_mouse: (name: string, params: SimpleGeoCreatureAuthoringParams) => WorldLibraryObjectSpec;
   readonly geo_butterfly: (name: string, params: SimpleGeoCreatureAuthoringParams) => WorldLibraryObjectSpec;
   readonly house: (name: string, params: StaticObjectAuthoringParams) => WorldLibraryObjectSpec;
@@ -41,16 +48,52 @@ export const worldObjectLibrary: WorldObjectLibrary = {
       ...params,
       scaleXYZ: treeScaleXYZ(params.scale ?? 1),
     }),
+  tree_swirl: (name, params) =>
+    createStaticLibraryObject(name, "TreeSwirl/Tree Swirl.glb", {
+      ...params,
+      scaleXYZ: treeScaleXYZ(params.scale ?? 1),
+    }),
   grass: (name, params) => createStaticLibraryObject(name, "grass1/Grass.glb", params),
+  bench: (name, params) =>
+    createStaticLibraryObject(name, "Bench/Bench.glb", {
+      ...params,
+      scale: (params.scale ?? 1) * 0.9,
+    }),
+  bicycle: (name, params) =>
+    createStaticLibraryObject(name, "bicycle/Bicycle.glb", {
+      ...params,
+      scale: (params.scale ?? 1) * 0.9,
+    }),
+  flower_group: (name, params) =>
+    createStaticLibraryObject(name, "FloweGroup/Flower Group.glb", {
+      ...params,
+      scale: (params.scale ?? 1) * 0.7,
+    }),
+  flower_pot: (name, params) =>
+    createStaticLibraryObject(name, "flowerPot/Flower Pot.glb", {
+      ...params,
+      scale: (params.scale ?? 1) * 0.75,
+    }),
+  stop_sign: (name, params) =>
+    createStaticLibraryObject(name, "stopsign/Stop sign.glb", {
+      ...params,
+      scale: (params.scale ?? 1) * 0.75,
+    }),
+  traffic_cone: (name, params) =>
+    createStaticLibraryObject(name, "trafficCone/Cone.glb", {
+      ...params,
+      scale: (params.scale ?? 1) * 0.75,
+    }),
   geo_mouse: (name, params) =>
     brandLibraryObject(createSimpleGeoCreature("geo-mouse", name, "mouse/Mouse.glb", params)),
   geo_butterfly: (name, params) =>
     brandLibraryObject(createSimpleGeoCreature("geo-butterfly", name, "butterfly/Butterfly.glb", params)),
   house: (name, params) => worldObjectLibrary.small_house(name, params),
-  clock: (name, params) => worldObjectLibrary.small_house(name, params),
-  campfire: (name, params) => createStaticLibraryObject(name, "grass1/Grass.glb", params),
-  rocks: (name, params) => createStaticLibraryObject(name, "grass1/Grass.glb", params),
-  emergency_button: (name, params) => worldObjectLibrary.small_house(name, params),
+  clock: (name, params) => createStaticLibraryObject(name, "_legacy/clock_low_poly/scene.gltf", params),
+  campfire: (name, params) => createStaticLibraryObject(name, "_legacy/low_poly_campfire/scene.gltf", params),
+  rocks: (name, params) => createStaticLibraryObject(name, "_legacy/low_poly_rocks/scene.gltf", params),
+  emergency_button: (name, params) =>
+    createStaticLibraryObject(name, "_legacy/low_poly_emergency_button/scene.gltf", params),
   geodesic_marmot: (name, params) =>
     brandLibraryObject(
       createGeodesciMarmot({

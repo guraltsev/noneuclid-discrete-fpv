@@ -59,8 +59,9 @@ back_butterfly = geo_butterfly("back-butterfly", {
   oscillationMagnitude: 0.3,
 });
 
-left_tree = tree("left-tree", {
+left_bench = bench("left-bench", {
   position: [-0.9, 0, 0.7],
+  scale: 0.9,
   turn: 46,
 });
 
@@ -70,15 +71,15 @@ top_grass = grass("top-grass", {
   turn: -9,
 });
 
-bottom_house = small_house("bottom-house", {
+bottom_bicycle = bicycle("bottom-bicycle", {
   position: [-0.5, 0, -0.8],
-  scale: 0.8,
+  scale: 0.85,
   turn: 29,
 });
 
 OnFace("front", [front_house, front_mouse]);
 OnFace("right", [right_tree]);
 OnFace("back", [back_butterfly]);
-OnFace("left", [left_tree]);
+OnFace("left", [left_bench]);
 OnFace("top", [top_grass]);
-OnFace("bottom", [bottom_house]);
+OnFace("bottom", [bottom_bicycle]);

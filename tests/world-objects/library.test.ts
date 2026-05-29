@@ -39,6 +39,38 @@ describe("worldObjectLibrary", () => {
       id: "top-grass",
       assetPath: "grass1/Grass.glb",
     });
+
+    expect(
+      worldObjectLibrary.tree_swirl("swirl", {
+        position: [0, 0, 0],
+      }),
+    ).toMatchObject({
+      id: "swirl",
+      assetPath: "TreeSwirl/Tree Swirl.glb",
+    });
+  });
+
+  it.each([
+    ["bench", "Bench/Bench.glb"],
+    ["bicycle", "bicycle/Bicycle.glb"],
+    ["flower_group", "FloweGroup/Flower Group.glb"],
+    ["flower_pot", "flowerPot/Flower Pot.glb"],
+    ["stop_sign", "stopsign/Stop sign.glb"],
+    ["traffic_cone", "trafficCone/Cone.glb"],
+    ["clock", "_legacy/clock_low_poly/scene.gltf"],
+    ["campfire", "_legacy/low_poly_campfire/scene.gltf"],
+    ["rocks", "_legacy/low_poly_rocks/scene.gltf"],
+    ["emergency_button", "_legacy/low_poly_emergency_button/scene.gltf"],
+  ] as const)("maps %s to %s", (libraryKey, assetPath) => {
+    expect(
+      worldObjectLibrary[libraryKey](`${libraryKey}-object`, {
+        position: [0, 0, 0],
+      }),
+    ).toMatchObject({
+      id: `${libraryKey}-object`,
+      kind: "asset",
+      assetPath,
+    });
   });
 
   it("keeps static wrappers non-collidable by default", () => {

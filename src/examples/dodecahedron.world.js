@@ -75,9 +75,9 @@ top_mouse = geo_mouse("top-geo-mouse", {
   oscillationMagnitude: 0.16,
 });
 
-upper_0_house = small_house("upper-0-house", {
+upper_0_flower_pot = flower_pot("upper-0-flower-pot", {
   position: [-1.6, 0, 0.8],
-  scale: 0.85,
+  scale: 0.9,
   turn: 20,
 });
 
@@ -100,20 +100,50 @@ upper_3_grass = grass("upper-3-grass", {
   turn: 29,
 });
 
-upper_4_tree = tree("upper-4-tree", {
+upper_4_tree_swirl = tree_swirl("upper-4-tree-swirl", {
   position: [-0.5, 0, -0.5],
+  scale: 1,
   turn: -14,
 });
 
-bottom_house = small_house("bottom-house", {
-  position: [0, 0, 0],
+lower_0_flower_group = flower_group("lower-0-flower-group", {
+  position: [-0.4, 0, 0.9],
+  scale: 1,
+  turn: -18,
+});
+
+lower_1_traffic_cone = traffic_cone("lower-1-traffic-cone", {
+  position: [0.6, 0, -0.6],
+  scale: 0.9,
+  turn: 10,
+});
+
+lower_2_bench = bench("lower-2-bench", {
+  position: [0.2, 0, 0.4],
+  scale: 0.85,
+  turn: 72,
+});
+
+lower_3_bicycle = bicycle("lower-3-bicycle", {
+  position: [-0.7, 0, -0.2],
   scale: 0.8,
+  turn: -36,
+});
+
+bottom_stop_sign = stop_sign("bottom-stop-sign", {
+  position: [0, 0, 0],
+  scale: 0.85,
+  turn: 12,
 });
 
 OnFace("top", [top_house, top_mouse]);
-OnFace("upper-0", [upper_0_house]);
+OnFace("upper-0", [upper_0_flower_pot]);
 OnFace("upper-1", [upper_1_tree]);
 OnFace("upper-2", [upper_2_butterfly]);
 OnFace("upper-3", [upper_3_grass]);
-OnFace("upper-4", [upper_4_tree]);
-OnFace("bottom", [bottom_house]);
+OnFace("upper-4", [upper_4_tree_swirl]);
+OnFace("lower-0", [lower_0_flower_group]);
+OnFace("lower-1", [lower_1_traffic_cone]);
+OnFace("lower-2", [lower_2_bench]);
+OnFace("lower-3", [lower_3_bicycle]);
+OnFace("bottom", [bottom_stop_sign]);

@@ -46,12 +46,24 @@ face_c_tree = tree("face-c-centerpiece", {
   position: [0, 0, 0],
 });
 
+face_c_flower_pot = flower_pot("face-c-flower-pot", {
+  position: [3.1, 0, 1.4],
+  scale: 0.85,
+  turn: 18,
+});
+
 face_d_grass = grass("face-d-centerpiece", {
   position: [0, 0, 0],
   scale: 1.2,
 });
 
+face_d_stop_sign = stop_sign("face-d-stop-sign", {
+  position: [-3.2, 0, 1.8],
+  scale: 0.8,
+  turn: -25,
+});
+
 OnFace("face-a", [face_a_house, face_a_mouse]);
 OnFace("face-b", [face_b_butterfly]);
-OnFace("face-c", [face_c_tree]);
-OnFace("face-d", [face_d_grass]);
+OnFace("face-c", [face_c_tree, face_c_flower_pot]);
+OnFace("face-d", [face_d_grass, face_d_stop_sign]);

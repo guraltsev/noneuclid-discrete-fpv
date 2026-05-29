@@ -23,4 +23,22 @@ torus_mouse = geo_mouse("torus-geo-mouse", {
   oscillationMagnitude: 0.18,
 });
 
-OnFace("torus-room", [torus_house, torus_mouse]);
+torus_bench = bench("torus-bench", {
+  position: [3.1, 0, -2.4],
+  scale: 0.9,
+  turn: -35,
+});
+
+torus_traffic_cone = traffic_cone("torus-traffic-cone", {
+  position: [-2.7, 0, -2.8],
+  scale: 0.85,
+  turn: 12,
+});
+
+torus_flower_group = flower_group("torus-flower-group", {
+  position: [2.6, 0, 2.6],
+  scale: 0.9,
+  turn: 28,
+});
+
+OnFace("torus-room", [torus_house, torus_mouse, torus_bench, torus_traffic_cone, torus_flower_group]);

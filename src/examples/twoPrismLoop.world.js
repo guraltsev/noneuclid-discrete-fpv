@@ -23,9 +23,21 @@ room_a_mouse = geo_mouse("room-a-geo-mouse", {
   oscillationMagnitude: 0.2,
 });
 
+room_a_bench = bench("room-a-bench", {
+  position: [3.2, 0, -2.4],
+  scale: 0.9,
+  turn: -18,
+});
+
 room_b_tree = tree("room-b-tree", {
   position: [0, 0, 0],
 });
 
-OnFace("room-a", [room_a_house, room_a_mouse]);
-OnFace("room-b", [room_b_tree]);
+room_b_bicycle = bicycle("room-b-bicycle", {
+  position: [-3.4, 0, 2.2],
+  scale: 0.85,
+  turn: 36,
+});
+
+OnFace("room-a", [room_a_house, room_a_mouse, room_a_bench]);
+OnFace("room-b", [room_b_tree, room_b_bicycle]);
