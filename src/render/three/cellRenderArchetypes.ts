@@ -13,7 +13,6 @@ import type { PreparedWorldAssets } from "./preloadWorldAssets";
 
 export type CellRenderArchetypeKind =
   | "floor"
-  | "ceiling"
   | "solid-wall"
   | "portal-frame"
   | "static-object";
@@ -211,7 +210,9 @@ function classifyObjectKind(object: THREE.Mesh): CellRenderArchetypeKind | undef
   }
 
   if (object.name.startsWith("ceiling:")) {
-    return "ceiling";
+    // The ceiling is a sky-colored collision cap. Rendering it through
+    // portal clip polygons makes aperture edges visible against the sky.
+    return undefined;
   }
 
   if (object.userData.kind === "solid-wall") {
