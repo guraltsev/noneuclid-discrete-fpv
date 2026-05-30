@@ -1,9 +1,10 @@
-import type { PortalInstanceRenderState, VisiblePortalPathRenderState } from "./renderState";
+import type { PortalInstanceRenderState, VisiblePortalPathRenderState, XrDebugRenderState } from "./renderState";
 
 export interface DebugOverlayState {
   readonly visible: boolean;
   readonly visiblePortalPaths?: VisiblePortalPathRenderState;
   readonly portalInstances?: PortalInstanceRenderState;
+  readonly xr?: XrDebugRenderState;
   readonly inspectedPathLine?: string;
 }
 
@@ -20,7 +21,7 @@ export function createDebugOverlay(container: HTMLElement): DebugOverlay {
 
   return {
     update(state) {
-      const hasContent = Boolean(state.visiblePortalPaths || state.portalInstances || state.inspectedPathLine);
+      const hasContent = Boolean(state.visiblePortalPaths || state.portalInstances || state.xr || state.inspectedPathLine);
       root.hidden = !state.visible || !hasContent;
 
       if (!hasContent) {
@@ -32,6 +33,7 @@ export function createDebugOverlay(container: HTMLElement): DebugOverlay {
         state.visiblePortalPaths ? formatVisiblePortalPathLine(state.visiblePortalPaths) : undefined,
         state.portalInstances ? formatPortalInstanceLine(state.portalInstances) : undefined,
         state.portalInstances ? formatPortalArchetypeLine(state.portalInstances) : undefined,
+        state.xr ? formatXrDebugLine(state.xr) : undefined,
         state.inspectedPathLine,
       ]
         .filter((line): line is string => Boolean(line))
@@ -56,4 +58,30 @@ export function formatPortalInstanceLine(state: PortalInstanceRenderState): stri
 export function formatPortalArchetypeLine(state: PortalInstanceRenderState): string {
   const clipOverflow = state.clipPolygonOverflowPathIds.length + state.visiblePathOverflowCount;
   return `archetypes: ${state.archetypeCount} / overflow ${state.capacityOverflowCount} / clip ${clipOverflow}`;
+}
+
+export function formatXrDebugLine(state: XrDebugRenderState): string {
+  const blocked = state.lastMovementBlocked
+    ? `blocked ${state.lastBlockingReason ?? "unknown"}`
+    : "not blocked";
+  const portal = state.lastCrossedPortalId ? ` / portal ${state.lastCrossedPortalId}` : "";
+  const root = state.sharedRenderRootCellId ? ` / xr root ${state.sharedRenderRootCellId}` : "";
+
+  return [
+    `xr ${state.sessionStatus}`,
+    state.secureContext ? "secure" : "insecure",
+    `input ${state.activeInputSource}`,
+    `cell ${state.currentCellId}`,
+    `pos ${formatVec3(state.playerPosition)}`,
+    `yaw ${roundNumber(state.yawRadians)}`,
+    blocked,
+  ].join(" / ") + portal + root;
+}
+
+function formatVec3(point: { readonly x: number; readonly y: number; readonly z: number }): string {
+  return `(${roundNumber(point.x)}, ${roundNumber(point.y)}, ${roundNumber(point.z)})`;
+}
+
+function roundNumber(value: number): number {
+  return Math.round(value * 1_000) / 1_000;
 }

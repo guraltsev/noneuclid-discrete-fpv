@@ -12,7 +12,7 @@ describe("worldObjectLibrary", () => {
     ).toMatchObject({
       id: "front-house",
       kind: "asset",
-      assetPath: "small_house/Small House.glb",
+      assetPath: "small_house/small_house.glb",
       position: { x: -1, y: 2, z: 0 },
       scale: 7.5,
       modelOffset: { x: 0, y: 0, z: 3.75 },
@@ -46,16 +46,16 @@ describe("worldObjectLibrary", () => {
       }),
     ).toMatchObject({
       id: "swirl",
-      assetPath: "TreeSwirl/Tree Swirl.glb",
+      assetPath: "TreeSwirl/tree_swirl.glb",
     });
   });
 
   it.each([
     ["bench", "Bench/Bench.glb"],
     ["bicycle", "bicycle/Bicycle.glb"],
-    ["flower_group", "FloweGroup/Flower Group.glb"],
-    ["flower_pot", "flowerPot/Flower Pot.glb"],
-    ["stop_sign", "stopsign/Stop sign.glb"],
+    ["flower_group", "FloweGroup/flower_group.glb"],
+    ["flower_pot", "flowerPot/flower_pot.glb"],
+    ["stop_sign", "stopsign/stop_sign.glb"],
     ["traffic_cone", "trafficCone/Cone.glb"],
     ["clock", "_legacy/clock_low_poly/scene.gltf"],
     ["campfire", "_legacy/low_poly_campfire/scene.gltf"],

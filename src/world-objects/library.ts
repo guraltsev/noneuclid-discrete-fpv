@@ -38,7 +38,7 @@ export interface WorldObjectLibrary {
 
 export const worldObjectLibrary: WorldObjectLibrary = {
   small_house: (name, params) =>
-    createStaticLibraryObject(name, "small_house/Small House.glb", {
+    createStaticLibraryObject(name, "small_house/small_house.glb", {
       ...params,
       scale: (params.scale ?? 1) * 2.5,
       modelOffset: [0, (params.scale ?? 1) * 2.5 * 0.5, 0],
@@ -49,7 +49,7 @@ export const worldObjectLibrary: WorldObjectLibrary = {
       scaleXYZ: treeScaleXYZ(params.scale ?? 1),
     }),
   tree_swirl: (name, params) =>
-    createStaticLibraryObject(name, "TreeSwirl/Tree Swirl.glb", {
+    createStaticLibraryObject(name, "TreeSwirl/tree_swirl.glb", {
       ...params,
       scaleXYZ: treeScaleXYZ(params.scale ?? 1),
     }),
@@ -65,17 +65,17 @@ export const worldObjectLibrary: WorldObjectLibrary = {
       scale: (params.scale ?? 1) * 0.9,
     }),
   flower_group: (name, params) =>
-    createStaticLibraryObject(name, "FloweGroup/Flower Group.glb", {
+    createStaticLibraryObject(name, "FloweGroup/flower_group.glb", {
       ...params,
       scale: (params.scale ?? 1) * 0.7,
     }),
   flower_pot: (name, params) =>
-    createStaticLibraryObject(name, "flowerPot/Flower Pot.glb", {
+    createStaticLibraryObject(name, "flowerPot/flower_pot.glb", {
       ...params,
       scale: (params.scale ?? 1) * 0.75,
     }),
   stop_sign: (name, params) =>
-    createStaticLibraryObject(name, "stopsign/Stop sign.glb", {
+    createStaticLibraryObject(name, "stopsign/stop_sign.glb", {
       ...params,
       scale: (params.scale ?? 1) * 0.75,
     }),

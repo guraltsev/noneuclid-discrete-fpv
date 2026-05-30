@@ -1,3 +1,26 @@
+import type { Vec3 } from "../../math/vec3";
+
+export interface RuntimeInputFrame {
+  readonly localDisplacement: Vec3;
+  readonly yawDeltaRadians: number;
+  readonly pitchDeltaRadians: number;
+  readonly resetRequested: boolean;
+  readonly source: "desktop" | "xr";
+}
+
+export interface XrDebugRenderState {
+  readonly secureContext: boolean;
+  readonly sessionStatus: string;
+  readonly activeInputSource: RuntimeInputFrame["source"];
+  readonly currentCellId: string;
+  readonly playerPosition: Vec3;
+  readonly yawRadians: number;
+  readonly lastMovementBlocked: boolean;
+  readonly lastBlockingReason?: string;
+  readonly lastCrossedPortalId?: string;
+  readonly sharedRenderRootCellId?: string;
+}
+
 export interface RenderState {
   readonly frameCount: number;
   readonly visiblePortalPaths?: VisiblePortalPathRenderState;

@@ -59,7 +59,7 @@ import {
 } from "./renderQuality";
 import { runtimeDiagnostics } from "./runtimeDiagnostics";
 import type { PreparedWorldAssets } from "./preloadWorldAssets";
-import type { VisiblePortalPathRenderState } from "./renderState";
+import type { RuntimeInputFrame, VisiblePortalPathRenderState, XrDebugRenderState } from "./renderState";
 import { createPortalClipData } from "./portalClipData";
 import {
   createPortalClipMaterialState,
@@ -81,6 +81,15 @@ import {
   type VisiblePortalPathLookupResult,
 } from "./visiblePortalPaths";
 import { rigidTransformToThreeMatrix, worldPointToThree } from "./worldAxes";
+import { createXrControls } from "./xrControls";
+import { createXrEntryUi } from "./xrEntryUi";
+import { createXrPlayerRig, headLocalMetersFromViewerPose } from "./xrPlayerRig";
+import {
+  createXrSessionState,
+  detectXrSessionState,
+  transitionXrSessionState,
+  type XrSessionState,
+} from "./xrSessionState";
 import {
   composeRigidTransform3,
   identityRigidTransform3,
@@ -127,13 +136,21 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   const pixelRatio = resolveRenderQualityPixelRatio(options.renderQualityEnabled, window.devicePixelRatio);
   const renderer = new THREE.WebGLRenderer({ antialias: renderAntialiasRequested });
   renderer.shadowMap.enabled = false;
+  renderer.xr.enabled = true;
+  renderer.xr.setReferenceSpaceType("local-floor");
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(initialCanvasSize.width, initialCanvasSize.height);
   container.append(renderer.domElement);
   const controls = createDesktopControls(renderer.domElement);
+  const xrControls = createXrControls();
+  const xrRig = createXrPlayerRig(camera);
+  scene.add(xrRig.root);
   const clock = new THREE.Clock();
-  let animationFrameId = 0;
   let playerPose = appState.playerPose;
+  let xrSessionState: XrSessionState = createXrSessionState("unknown", {
+    secureContext: window.isSecureContext,
+  });
+  let xrDebugState: XrDebugRenderState = createInitialXrDebugState(xrSessionState, playerPose);
   let debugLevel = options.debugLevel;
   let portalPanelMode = options.portalPanelMode;
   let debugOptions = options.debugOptions;
@@ -143,6 +160,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     "portal-path-overlay-instances",
   );
   const debugOverlay = createDebugOverlay(container);
+  const xrEntryUi = createXrEntryUi(container, enterVr);
   const clipPolygonOverlay = createPortalClipPolygonOverlay(container);
   const sceneLighting = createStylizedSceneLighting(scene);
 
@@ -197,7 +215,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   let visibleCellId: string | undefined = playerPose.cellId;
 
   rebuildCellMeshes();
-  applyCameraPose();
+  applyDesktopCameraPose();
   syncPortalInstanceRender();
   let portalDebugRuntime = createPortalDebugRuntime();
   logDebugStartupGuide(debugLevel, debugOptions);
@@ -222,28 +240,17 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
   disableFrustumCulling(scene);
   disableShadows(scene);
 
-  function applyCameraPose(): void {
-    const eyePosition = {
-      x: playerPose.position.x,
-      y: playerPose.position.y,
-      z: playerPose.position.z + DEFAULT_PLAYER_EYE_HEIGHT_METERS,
-    };
-    const cameraPosition = worldPointToThree(eyePosition);
-    const forward = {
-      x: -Math.sin(playerPose.yawRadians) * Math.cos(playerPose.pitchRadians),
-      y: Math.cos(playerPose.yawRadians) * Math.cos(playerPose.pitchRadians),
-      z: Math.sin(playerPose.pitchRadians),
-    };
-    const lookAtWorld = {
-      x: eyePosition.x + forward.x,
-      y: eyePosition.y + forward.y,
-      z: eyePosition.z + forward.z,
-    };
-    camera.position.copy(cameraPosition);
-    camera.up.set(0, 1, 0);
-    camera.lookAt(worldPointToThree(lookAtWorld));
+  function applyDesktopCameraPose(): void {
+    xrRig.syncDesktopCamera(playerPose);
     updateStylizedSceneLighting(sceneLighting, camera);
   }
+
+  void detectXrSessionState(navigator, window.isSecureContext).then((state) => {
+    xrSessionState = state;
+    xrEntryUi.update(xrSessionState);
+    syncXrDebugState("desktop");
+  });
+  xrEntryUi.update(xrSessionState);
 
   const warmupStartMs = performance.now();
   prerenderCells({
@@ -280,22 +287,22 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     );
   }
 
-  function renderFrame(): void {
+  function renderFrame(_time?: DOMHighResTimeStamp, xrFrame?: XRFrame): void {
     const frameStartMs = performance.now();
     const deltaSeconds = clock.getDelta();
-    const frame = controls.consumeFrame(deltaSeconds);
+    const xrActive = renderer.xr.isPresenting && xrSessionState.status === "active";
+    const xrReferenceSpace = xrActive ? renderer.xr.getReferenceSpace() : null;
+    const headLocalMeters = xrActive && xrFrame && xrReferenceSpace
+      ? headLocalMetersFromViewerPose(xrFrame.getViewerPose(xrReferenceSpace))
+      : undefined;
+    const frame = xrActive ? getXrInputFrame(deltaSeconds) : getDesktopInputFrame(deltaSeconds);
     const frameBeforeMoveMs = performance.now();
     const previousCellId = playerPose.cellId;
-    let moveResult:
-      | {
-          readonly pose: typeof playerPose;
-          readonly crossedPortal: boolean;
-          readonly crossedPortalId?: string;
-        }
-      | undefined;
+    let moveResult: ReturnType<typeof movePlayer> | undefined;
 
     if (frame.resetRequested) {
       playerPose = createDefaultPlayerPose(appState.playerPose.cellId);
+      xrRig.reset();
       for (const runtime of dynamicObjectRuntimes) {
         runtime.reset(cellMeshes);
       }
@@ -310,15 +317,27 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         coordinateFrame: "global",
       });
       playerPose = moveResult.pose;
+      recordCellTransition(previousCellId, moveResult);
+
+      if (xrActive) {
+        const beforePhysicalCellId = playerPose.cellId;
+        const physicalFrame = xrRig.consumePhysicalInput(headLocalMeters, playerPose.yawRadians);
+        const physicalMoveResult = movePlayer({
+          world: appState.world,
+          pose: playerPose,
+          body: appState.playerBody,
+          localDisplacement: physicalFrame.localDisplacement,
+          yawDeltaRadians: 0,
+          pitchDeltaRadians: 0,
+          coordinateFrame: "global",
+        });
+        playerPose = physicalMoveResult.pose;
+        xrRig.acceptPhysicalMove(physicalMoveResult, headLocalMeters);
+        moveResult = physicalMoveResult.blocked || physicalMoveResult.crossedPortal ? physicalMoveResult : moveResult;
+        recordCellTransition(beforePhysicalCellId, physicalMoveResult);
+      }
     }
     const frameAfterMoveMs = performance.now();
-
-    if (playerPose.cellId !== previousCellId) {
-      if (moveResult?.crossedPortal) {
-        runtimeDiagnostics().recordCellEntered(previousCellId, playerPose.cellId, moveResult.crossedPortalId ?? "unknown-portal");
-      }
-      portalDebugRuntime.syncRootCell();
-    }
 
     for (const runtime of dynamicObjectRuntimes) {
       runtime.update(appState.world, frame.resetRequested ? 0 : deltaSeconds);
@@ -326,9 +345,15 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
     }
 
     updateVisibleCell();
-    applyCameraPose();
+    if (xrActive) {
+      xrRig.syncXrRig(playerPose, headLocalMeters);
+      updateStylizedSceneLighting(sceneLighting, camera);
+    } else {
+      applyDesktopCameraPose();
+    }
     syncPortalInstanceRender();
     syncLegacyObjectPortalRenders();
+    syncXrDebugState(frame.source, moveResult);
     portalDebugRuntime.updateVisiblePortalPaths();
     const frameBeforeRenderMs = performance.now();
     renderer.render(scene, camera);
@@ -338,12 +363,11 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       moveMs: frameAfterMoveMs - frameBeforeMoveMs,
       renderMs: frameAfterRenderMs - frameBeforeRenderMs,
     });
-    animationFrameId = window.requestAnimationFrame(renderFrame);
   }
 
   window.addEventListener("resize", onResize);
-  applyCameraPose();
-  renderFrame();
+  applyDesktopCameraPose();
+  renderer.setAnimationLoop(renderFrame);
 
   return {
     scene,
@@ -366,11 +390,11 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
         runtime.syncParent(cellMeshes);
       }
       syncLegacyObjectPortalRenders();
-      applyCameraPose();
+      applyDesktopCameraPose();
       renderer.render(scene, camera);
     },
     dispose() {
-      window.cancelAnimationFrame(animationFrameId);
+      renderer.setAnimationLoop(null);
       window.removeEventListener("resize", onResize);
       controls.dispose();
       for (const cellMesh of cellMeshes.values()) {
@@ -388,12 +412,106 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
       legacyObjectPortalRenderRoot.removeFromParent();
       portalDebugRuntime.dispose();
       debugOverlay.dispose();
+      xrEntryUi.dispose();
       clipPolygonOverlay.dispose();
       disposeStylizedSceneLighting(sceneLighting, scene);
       renderer.dispose();
       renderer.domElement.remove();
     },
   };
+
+  async function enterVr(): Promise<void> {
+    const xr = navigator.xr;
+
+    if (
+      !xr?.requestSession ||
+      !xrSessionState.immersiveVrSupported ||
+      (xrSessionState.status !== "available" && xrSessionState.status !== "ended" && xrSessionState.status !== "failed")
+    ) {
+      return;
+    }
+
+    xrSessionState = transitionXrSessionState(xrSessionState, "entering");
+    xrEntryUi.update(xrSessionState);
+    syncXrDebugState("desktop");
+
+    try {
+      const session = await xr.requestSession("immersive-vr", {
+        optionalFeatures: ["local-floor", "bounded-floor"],
+      });
+      session.addEventListener("end", () => {
+        xrSessionState = transitionXrSessionState(xrSessionState, "ended");
+        xrRig.reset();
+        xrEntryUi.update(xrSessionState);
+        syncXrDebugState("desktop");
+      });
+      await renderer.xr.setSession(session);
+      xrSessionState = transitionXrSessionState(xrSessionState, "active");
+      xrEntryUi.update(xrSessionState);
+      syncXrDebugState("xr");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to start immersive VR.";
+      xrSessionState = transitionXrSessionState(xrSessionState, "failed", message);
+      xrEntryUi.update(xrSessionState);
+      syncXrDebugState("desktop");
+    }
+  }
+
+  function getDesktopInputFrame(deltaSeconds: number): RuntimeInputFrame {
+    const frame = controls.consumeFrame(deltaSeconds);
+
+    return {
+      ...frame,
+      source: "desktop",
+    };
+  }
+
+  function getXrInputFrame(deltaSeconds: number): RuntimeInputFrame {
+    const session = renderer.xr.getSession();
+
+    if (!session) {
+      return {
+        localDisplacement: { x: 0, y: 0, z: 0 },
+        yawDeltaRadians: 0,
+        pitchDeltaRadians: 0,
+        resetRequested: false,
+        source: "xr",
+      };
+    }
+
+    return xrControls.consumeFrame(session.inputSources, deltaSeconds);
+  }
+
+  function recordCellTransition(previousCellId: string, moveResult: ReturnType<typeof movePlayer>): void {
+    if (playerPose.cellId !== previousCellId) {
+      if (moveResult.crossedPortal) {
+        runtimeDiagnostics().recordCellEntered(
+          previousCellId,
+          playerPose.cellId,
+          moveResult.crossedPortalId ?? "unknown-portal",
+        );
+      }
+      portalDebugRuntime.syncRootCell();
+    }
+  }
+
+  function syncXrDebugState(
+    source: RuntimeInputFrame["source"],
+    moveResult?: ReturnType<typeof movePlayer>,
+  ): void {
+    xrDebugState = {
+      secureContext: xrSessionState.secureContext,
+      sessionStatus: xrSessionState.status,
+      activeInputSource: source,
+      currentCellId: playerPose.cellId,
+      playerPosition: playerPose.position,
+      yawRadians: playerPose.yawRadians,
+      lastMovementBlocked: moveResult?.blocked ?? xrDebugState.lastMovementBlocked,
+      lastBlockingReason: moveResult?.blockingReason ?? xrDebugState.lastBlockingReason,
+      lastCrossedPortalId: moveResult?.crossedPortalId ?? xrDebugState.lastCrossedPortalId,
+      sharedRenderRootCellId: renderer.xr.isPresenting ? xrRig.getSharedRenderRootCellId(playerPose) : undefined,
+    };
+  }
 
   function rebuildCellMeshes(): void {
     const currentlyVisibleCellId = visibleCellId ?? playerPose.cellId;
@@ -880,6 +998,7 @@ export function createThreeApp(container: HTMLElement, appState: AppState, optio
           visible: portalPathDebugActive || visiblePathDebugActive,
           visiblePortalPaths: visibleSummary,
           portalInstances: portalInstanceRenderState,
+          xr: xrDebugState,
           inspectedPathLine: formatInspectedPathLine(activeOverlayPathText, activeOverlayPathCheck, latestVisibleResult),
         });
         updateSelectedClipPolygonOverlay();
@@ -1446,6 +1565,19 @@ function disposeMaterial(material: THREE.Material | THREE.Material[]): void {
   }
 
   material.dispose();
+}
+
+function createInitialXrDebugState(xrSessionState: XrSessionState, playerPose: PlayerPose): XrDebugRenderState {
+  return {
+    secureContext: xrSessionState.secureContext,
+    sessionStatus: xrSessionState.status,
+    activeInputSource: "desktop",
+    currentCellId: playerPose.cellId,
+    playerPosition: playerPose.position,
+    yawRadians: playerPose.yawRadians,
+    lastMovementBlocked: false,
+    sharedRenderRootCellId: undefined,
+  };
 }
 
 function cloneObject3DWithFreshMeshResources(
