@@ -1,12 +1,14 @@
+octagon_scale = 8.0;
+
 octagon = [
-  [8.31491579260158, -3.444150891285808],
-  [8.31491579260158, 3.444150891285808],
-  [3.444150891285808, 8.31491579260158],
-  [-3.444150891285808, 8.31491579260158],
-  [-8.31491579260158, 3.444150891285808],
-  [-8.31491579260158, -3.444150891285808],
-  [-3.444150891285808, -8.31491579260158],
-  [3.444150891285808, -8.31491579260158],
+  [8.31491579260158 * octagon_scale, -3.444150891285808 * octagon_scale],
+  [8.31491579260158 * octagon_scale, 3.444150891285808 * octagon_scale],
+  [3.444150891285808 * octagon_scale, 8.31491579260158 * octagon_scale],
+  [-3.444150891285808 * octagon_scale, 8.31491579260158 * octagon_scale],
+  [-8.31491579260158 * octagon_scale, 3.444150891285808 * octagon_scale],
+  [-8.31491579260158 * octagon_scale, -3.444150891285808 * octagon_scale],
+  [-3.444150891285808 * octagon_scale, -8.31491579260158 * octagon_scale],
+  [3.444150891285808 * octagon_scale, -8.31491579260158 * octagon_scale],
 ];
 
 PolygonFace("genus-2-octagon", floorTexture("paving_stones"), octagon);
@@ -40,16 +42,52 @@ genus_2_mouse = geo_mouse("genus-2-geo-mouse", {
   oscillationMagnitude: 0.18,
 });
 
-genus_2_bench = bench("genus-2-bench", {
-  position: [3.6, 0, -2.7],
-  scale: 0.85,
-  turn: -28,
+genus_2_side_0_stop_sign = stop_sign("genus-2-side-0-stop-sign", {
+  position: [51.85, 0, 0],
+  scale: 1,
+  turn: -90,
 });
 
-genus_2_marker = traffic_cone("genus-2-traffic-cone", {
-  position: [4.2, 0, 2.6],
+genus_2_side_1_tree = tree("genus-2-side-1-tree", {
+  position: [36.95, 0, 36.95],
   scale: 0.85,
-  turn: 34,
+  turn: 25,
+});
+
+genus_2_side_2_bicycle = bicycle("genus-2-side-2-bicycle", {
+  position: [0, 0, 51.85],
+  scale: 0.85,
+  turn: 90,
+});
+
+genus_2_side_3_flower_pot = flower_pot("genus-2-side-3-flower-pot", {
+  position: [-36.95, 0, 36.95],
+  scale: 1.25,
+  turn: -24,
+});
+
+genus_2_side_4_campfire = campfire("genus-2-side-4-campfire", {
+  position: [-51.85, 0, 0],
+  scale: 0.75,
+  turn: 0,
+});
+
+genus_2_side_5_rocks = rocks("genus-2-side-5-rocks", {
+  position: [-36.95, 0, -36.95],
+  scale: 0.85,
+  turn: 32,
+});
+
+genus_2_side_6_marker = traffic_cone("genus-2-side-6-traffic-cone", {
+  position: [0, 0, -51.85],
+  scale: 0.85,
+  turn: 0,
+});
+
+genus_2_side_7_bench = bench("genus-2-side-7-bench", {
+  position: [36.95, 0, -36.95],
+  scale: 0.85,
+  turn: -28,
 });
 
 genus_2_flower_group = flower_group("genus-2-flower-group", {
@@ -58,16 +96,15 @@ genus_2_flower_group = flower_group("genus-2-flower-group", {
   turn: 18,
 });
 
-genus_2_computer = computer_large("genus-2-geometry-computer", {
-  position: [-4.8, 0, 3.2],
-  scale: 1.05,
-  turn: 52,
-});
-
 OnFace("genus-2-octagon", [
   genus_2_mouse,
-  genus_2_bench,
-  genus_2_marker,
+  genus_2_side_0_stop_sign,
+  genus_2_side_1_tree,
+  genus_2_side_2_bicycle,
+  genus_2_side_3_flower_pot,
+  genus_2_side_4_campfire,
+  genus_2_side_5_rocks,
+  genus_2_side_6_marker,
+  genus_2_side_7_bench,
   genus_2_flower_group,
-  genus_2_computer,
 ]);

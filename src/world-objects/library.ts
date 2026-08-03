@@ -96,7 +96,7 @@ const staticLibraryDefinitions = {
   },
   grass: {
     assetPath: "grass1/Grass.glb",
-    class: "decoration",
+    class: "grass",
     do_not_collide_with: [userObjectClass],
   },
   bench: {
@@ -113,7 +113,7 @@ const staticLibraryDefinitions = {
   },
   bicycle: {
     assetPath: "bicycle/Bicycle.glb",
-    class: "bicycle",
+    class: "bike",
     displayHelpMessage: "A static bicycle. It is a landmark and collision object in this cell.",
     visualScale: 0.9,
     collision: (scale) => ({
@@ -124,13 +124,13 @@ const staticLibraryDefinitions = {
   },
   flower_group: {
     assetPath: "FloweGroup/flower_group.glb",
-    class: "decoration",
+    class: "flowers",
     visualScale: 0.7,
     do_not_collide_with: [userObjectClass],
   },
   flower_pot: {
     assetPath: "flowerPot/flower_pot.glb",
-    class: "decoration",
+    class: "flower-pot",
     displayHelpMessage: "A small decorative object. It can help you recognize this part of the world.",
     visualScale: 0.75,
     collision: (scale) => ({
@@ -175,12 +175,12 @@ const staticLibraryDefinitions = {
   },
   clock: {
     assetPath: "_legacy/clock_low_poly/scene.gltf",
-    class: "decoration",
+    class: "clock",
     do_not_collide_with: [userObjectClass],
   },
   campfire: {
     assetPath: "_legacy/low_poly_campfire/scene.gltf",
-    class: "decoration",
+    class: "fire",
     displayHelpMessage: "A static campfire landmark.",
     collision: (scale) => ({
       radius: scale * 0.55,
@@ -190,7 +190,7 @@ const staticLibraryDefinitions = {
   },
   rocks: {
     assetPath: "_legacy/low_poly_rocks/scene.gltf",
-    class: "decoration",
+    class: "rocks",
     displayHelpMessage: "Static rocks. They are landmarks and collision objects in this cell.",
     collision: (scale) => ({
       radius: scale * 0.45,

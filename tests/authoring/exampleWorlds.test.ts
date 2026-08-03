@@ -87,9 +87,36 @@ describe("example worlds", () => {
 
     expect(octagon?.baseVertices).toHaveLength(8);
     expect(octagon?.portals).toHaveLength(8);
+    expect(octagon?.baseVertices[0]?.x).toBeCloseTo(66.519326);
+    expect(octagon?.baseVertices[2]?.y).toBeCloseTo(66.519326);
     expect(vertexClasses).toHaveLength(1);
     expect(quotientEdges).toBe(4);
     expect(eulerCharacteristic).toBe(-2);
+  });
+
+  it("marks every genus-2 octagon side without a geometry computer", () => {
+    const octagon = genus2Torus.cells.find((cell) => cell.id === "genus-2-octagon");
+    const objectsById = new Map((octagon?.visuals?.objects ?? []).map((object) => [object.id, object]));
+    const sideLandmarks = [
+      ["genus-2-side-0-stop-sign", "sign", 51.85, 0],
+      ["genus-2-side-1-tree", "tree", 36.95, 36.95],
+      ["genus-2-side-2-bicycle", "bike", 0, 51.85],
+      ["genus-2-side-3-flower-pot", "flower-pot", -36.95, 36.95],
+      ["genus-2-side-4-campfire", "fire", -51.85, 0],
+      ["genus-2-side-5-rocks", "rocks", -36.95, -36.95],
+      ["genus-2-side-6-traffic-cone", "cone", 0, -51.85],
+      ["genus-2-side-7-bench", "bench", 36.95, -36.95],
+    ] as const;
+
+    for (const [id, className, x, y] of sideLandmarks) {
+      const object = objectsById.get(id);
+
+      expect(object?.class).toBe(className);
+      expect(object?.position.x).toBeCloseTo(x);
+      expect(object?.position.y).toBeCloseTo(y);
+    }
+    expect(octagon?.visuals?.objects?.some((object) => object.class === "geometry-computer")).toBe(false);
+    expect(octagon?.visuals?.objects?.some((object) => object.class === "decoration")).toBe(false);
   });
 
   it.each(exampleWorlds)("places the starter house and question cube in %s", (_name, world) => {
