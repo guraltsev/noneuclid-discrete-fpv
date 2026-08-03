@@ -1,16 +1,13 @@
 # 19 - FPS DOM palette menu
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; superseded by issue 27.
+## Outcome
 
-Priority: none as a product direction.
-
-The permanent desktop DOM palette proposed here was replaced by the shared
-in-scene desktop/XR palette. Normal menu interaction no longer imports the DOM
-palette implementation. Do not finish this obsolete design; archive it with a
-superseded-by-27 note. Removal of residual unused DOM compatibility modules is
-tracked by issues 30 and 38.
+Closed as superseded by issue 27. The proposed permanent desktop DOM palette was
+replaced by the shared in-scene desktop/XR palette. Residual unused DOM
+compatibility cleanup is tracked by issue 38 and does not justify
+finishing this obsolete product direction.
 
 ## Goal
 
@@ -18,7 +15,7 @@ Implement the first version of the shared palette menu in normal FPS desktop mod
 
 This issue is the foundation for the later VR menu. It should define the menu contract, state, commands, and desktop implementation without adding VR widget rendering.
 
-Design reference: [docs/design/011-vr-hand-tools-palette.md](../design/011-vr-hand-tools-palette.md).
+Design reference: [docs/design/011-vr-hand-tools-palette.md](../../design/011-vr-hand-tools-palette.md).
 
 ## Scope
 

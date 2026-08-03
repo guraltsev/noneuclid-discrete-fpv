@@ -17,7 +17,8 @@ Port the FPS palette menu to immersive VR by reusing the shared menu definition 
 
 This issue should not recreate widgets from scratch. It should evaluate and integrate a library-backed VR UI path for buttons, toggles, dropdown/list behavior, text, focus/hover/active states, clipping, and controller selection.
 
-Depends on: [19_fps_dom_palette_menu.md](./19_fps_dom_palette_menu.md).
+Supersedes the closed DOM-first proposal in
+[19_fps_dom_palette_menu.md](./_closed/19_fps_dom_palette_menu.md).
 
 Design reference: [docs/design/011-vr-hand-tools-palette.md](../design/011-vr-hand-tools-palette.md).
 

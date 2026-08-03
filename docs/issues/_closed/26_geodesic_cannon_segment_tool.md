@@ -1,17 +1,19 @@
 # 26 - Geodesic cannon segment tool
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; feature complete and domain model superseded by issue
-31.
-
-Priority: none for the original segment-tool scope.
+## Outcome
 
 Placement, aiming, bounded extension, wall/portal terminals, cell-local segment
-chains, runtime identities, rendering, reset, and interaction tests exist. The
-later interval/endpoint model in issue 31 replaced parts of this document's
-identity terminology. Archive with a note that issue 31 is the source of truth
-for current geodesic ownership and endpoint behavior.
+chains, runtime identities, rendering, reset, and interaction behavior are
+implemented. Issue 31's interval/endpoint model supersedes parts of this
+document's identity terminology and is the current source of truth.
+
+## Closing evidence
+
+The repository audit at `09dafe7` inspected the geodesic tool implementation
+and focused world-object/render tests. Node/npm were unavailable, so tests were
+not rerun for this documentation-only closure.
 
 ## Goal
 

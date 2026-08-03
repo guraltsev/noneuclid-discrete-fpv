@@ -19,7 +19,7 @@ Implement a complete first WebXR VR path for the current Three.js app.
 
 The result should let a student enter VR, look around naturally, move with room-scale and joystick locomotion, collide with authored world geometry, cross portals through the existing movement contract, reset cleanly, and still use the app on desktop when XR is unavailable.
 
-This issue expands the narrower locomotion-readiness work in [15_vr_readiness_locomotion_and_collision.md](./15_vr_readiness_locomotion_and_collision.md) and implements the Stage 08 handoff in [docs/llm-handoff/18_stage_08_webxr_vr_controls.md](../llm-handoff/18_stage_08_webxr_vr_controls.md).
+This issue expands the narrower locomotion-readiness work in [15_vr_readiness_locomotion_and_collision.md](./_closed/15_vr_readiness_locomotion_and_collision.md) and implements the Stage 08 handoff in [docs/llm-handoff/18_stage_08_webxr_vr_controls.md](../llm-handoff/18_stage_08_webxr_vr_controls.md).
 
 ## Design Reference
 

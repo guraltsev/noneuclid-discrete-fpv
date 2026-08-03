@@ -1,18 +1,20 @@
 # 18 - GPU texture optimization guideline
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; runtime texture optimization is implemented.
+## Outcome
 
-Priority: none for the original runtime-texture scope. Packaging follow-up is
-P0 in issue 34.
+Runtime floor textures now use KTX2 color maps with preload, mipmap, color-space,
+conversion-script, and documentation support. Raw authoring assets remaining in
+`public` are a separate deployment-footprint problem tracked by
+[issue 34](../34_reduce_deployment_and_repository_asset_footprint.md).
 
-Floor definitions now use runtime KTX2 color maps, preload support and mipmap/
-color-space handling exist, conversion scripts are checked in, and the asset
-documentation describes the workflow. This solved browser texture selection but
-not deployment size: raw authoring assets remain under `public` and are copied
-into the site. Close this issue and continue the distinct packaging problem in
-[issue 34](34_reduce_deployment_and_repository_asset_footprint.md).
+## Closing evidence
+
+The repository audit at `09dafe7` inspected the runtime definitions, preload
+path, conversion tooling, documentation, and focused tests. Node/npm were
+unavailable in the audit environment, so the suite was not rerun for this
+documentation-only closure.
 
 ## Goal
 

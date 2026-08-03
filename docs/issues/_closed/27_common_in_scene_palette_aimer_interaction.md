@@ -1,17 +1,19 @@
 # 27 - Common in-scene palette and aimer interaction
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; primary feature work is complete.
+## Outcome
 
-Priority: P3 for residual compatibility cleanup.
+Desktop and XR feed one scene-palette input/controller model, desktop keeps
+pointer lock for normal menu use, shared tool state exists, and in-scene sign
+editing and object menus are implemented. Unused DOM compatibility paths are
+cleanup tracked by issue 38 rather than missing acceptance behavior.
 
-Desktop and XR now feed one scene-palette input/controller model, desktop keeps
-pointer lock for normal menu use, shared tool state exists, and the in-scene
-sign editor and object menus are implemented. Unused DOM palette/input modules
-and an instantiated legacy desktop editor remain as cleanup rather than missing
-feature behavior. Archive this blueprint and track extraction/removal in issues
-30 and 38.
+## Closing evidence
+
+The repository audit at `09dafe7` inspected the common controller/input paths
+and contract tests. Node/npm were unavailable, so tests were not rerun for this
+documentation-only closure.
 
 ## Goal
 

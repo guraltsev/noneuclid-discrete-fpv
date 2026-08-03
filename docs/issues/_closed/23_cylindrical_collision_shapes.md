@@ -1,15 +1,18 @@
 # 23 - Cylindrical collision shapes
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; implementation is complete.
+## Outcome
 
-Priority: none.
+The runtime collision-shape union resolves to `SimpleCollisionCylinder`, and
+player/object movement, forbidden zones, placement checks, and debug wireframes
+use cylinder bounds. Movement and collision tests cover the public behavior.
 
-The runtime collision-shape union now resolves to `SimpleCollisionCylinder`,
-and player/object movement, forbidden zones, placement checks, and debug
-wireframes use cylinder bounds. Movement and collision tests cover the public
-behavior. Add a closing note and archive.
+## Closing evidence
+
+The repository audit at `09dafe7` inspected the collision types, movement path,
+forbidden-zone compiler, debug renderers, and tests. Node/npm were unavailable,
+so tests were not rerun for this documentation-only closure.
 
 ## Goal
 

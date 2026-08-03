@@ -20,7 +20,7 @@ Read the materials in this order when working through the flattened cube rebuild
 12. `docs/issues/_closed/16_stage_01_math_primitives.md` - closed; vectors, transforms, planes, polygons, tolerances.
 13. `docs/issues/_closed/17_stage_02_prism_cell_compiler.md` - closed; first implemented cell type and portal validation.
 14. `docs/issues/_closed/18_stage_03_movement_collision_portals.md` - closed; player movement, collision, portal crossing, and forbidden zones.
-15. `docs/issues/16_stage_04_renderer_completion.md` - open; finish the remaining stage-04 renderer meshes, debug overlay, and renderer-contract tests after the desktop foundation closed.
+15. `docs/issues/_closed/16_stage_04_renderer_completion.md` - closed; renderer meshes, debug state, and renderer-contract coverage are in place.
 16. `docs/llm-handoff/15_stage_05_portal_viewing.md` - one-hop and recursive portal visibility.
 17. `docs/llm-handoff/16_stage_06_straight_ray_tool.md` - shoot locally straight rays through portals.
 18. `docs/llm-handoff/17_stage_07_environment_tools.md` - markers, path traces, rulers, angle tools, and non-teaching data capture.

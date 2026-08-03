@@ -1,17 +1,19 @@
 # 30 - Student UI control standardization and discoverability
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate for the feature; retain only a P3 cleanup follow-up.
-
-Priority: P3.
+## Outcome
 
 Input intents, structured world interactions, contextual help, shared result
 badges, normalized context-menu routing, input-specific hints, and palette
-tooltips are implemented with tests. Remaining cleanup includes deprecated
-`desktopPrompt`/`xrPrompt` fields and unused DOM palette/editor/input paths.
-Update the phase list with completed status, archive the feature blueprint, and
-coordinate removal work through issue 38.
+tooltips are implemented. Deprecated prompt fields and unused DOM compatibility
+paths are P3 cleanup tracked by issue 38.
+
+## Closing evidence
+
+The repository audit at `09dafe7` inspected each phase's implementation and
+focused UI/render/runtime tests. Node/npm were unavailable, so tests were not
+rerun for this documentation-only closure.
 
 ## Goal
 
@@ -64,7 +66,7 @@ control.
 This issue builds on:
 
 - [19_fps_dom_palette_menu.md](./19_fps_dom_palette_menu.md)
-- [20_vr_palette_menu_from_shared_definition.md](./20_vr_palette_menu_from_shared_definition.md)
+- [20_vr_palette_menu_from_shared_definition.md](../20_vr_palette_menu_from_shared_definition.md)
 - [27_common_in_scene_palette_aimer_interaction.md](./27_common_in_scene_palette_aimer_interaction.md)
 
 This issue supersedes the prompt guidance in issue 27 where it says complex

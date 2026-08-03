@@ -1,15 +1,18 @@
 # 22 - Collision wireframe debug performance
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; implementation is complete.
-
-Priority: none unless a measured regression reappears.
+## Outcome
 
 Forbidden-zone and object collision helpers now use lightweight line-segment
-cylinder outlines and are kept out of ordinary portal archetype rendering.
-Relevant render-contract tests exist. Add closing verification evidence and
-archive.
+cylinder outlines and remain outside ordinary portal archetype rendering.
+Relevant render-contract coverage exists. Reopen only for a measured regression.
+
+## Closing evidence
+
+The repository audit at `09dafe7` inspected the dedicated debug-wireframe path
+and tests. Node/npm were unavailable, so tests were not rerun for this
+documentation-only closure.
 
 ## Goal
 

@@ -1,17 +1,20 @@
 # 15 - VR readiness for locomotion and collision
 
-## Repository audit status - 2026-08-03T14:24:10-05:00
+Status: closed on 2026-08-03.
 
-Status: archive candidate; duplicated and superseded by issue 17.
+## Outcome
 
-Priority: none as a separate implementation issue.
+Closed as duplicated and superseded by issue 17. The XR session, player rig,
+physical-motion, joystick-locomotion, reset, and shared movement/collision paths
+were implemented under the broader Stage 08 work. Headset regression evidence
+remains a closing condition of issue 17 rather than a reason to keep this
+duplicate blueprint open.
 
-The XR session, player-rig, physical-motion, joystick-locomotion, reset, and
-shared movement/collision paths now exist with render-contract tests. Issue 17
-subsumed this narrower readiness proposal. Before archiving, record whether a
-current headset smoke check has been completed; any missing manual verification
-should be tracked as a small regression-check task rather than keeping both VR
-blueprints open.
+## Closing evidence
+
+The repository audit at `09dafe7` found the implementation and corresponding
+XR/VR render-contract tests. Node/npm were unavailable in the audit environment,
+so the test suite was not rerun as part of this documentation-only closure.
 
 ## Goal
 

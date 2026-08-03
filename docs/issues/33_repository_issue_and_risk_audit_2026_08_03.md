@@ -15,9 +15,10 @@ set.
 
 The audit found 16 active issue files:
 
-- 14 describe work that is implemented or superseded and should be archived;
+- 10 implementation-complete or superseded issues were closed and moved to
+  `_closed` on 2026-08-03;
 - issues 17, 20, 21, and 29 may need fresh manual/end-to-end evidence before
-  their closing notes are final;
+  they can join the closed archive;
 - issues 31 and 32 remain active P1 domain-correctness work;
 - issue 30 has only P3 compatibility cleanup remaining;
 - six previously untracked operational or maintainability subjects are now
@@ -34,20 +35,20 @@ those commands run in CI or a Node-enabled environment.
 
 | Issue | Audit disposition |
 | --- | --- |
-| 15 | Archive as duplicate of 17. |
-| 16 | Archive as implemented; explicit world-id debug detail is optional P3. |
+| 15 | Closed as duplicate of 17 on 2026-08-03. |
+| 16 | Closed as implemented on 2026-08-03; explicit world-id debug detail remains optional P3. |
 | 17 | Update obsolete stereo criterion, record headset smoke result, archive. |
-| 18 | Archive runtime optimization; deployment footprint continues in 34. |
-| 19 | Archive as superseded by 27. |
+| 18 | Closed on 2026-08-03; deployment footprint continues in 34. |
+| 19 | Closed as superseded by 27 on 2026-08-03. |
 | 20 | Record headset interaction result and archive. |
 | 21 | Record headset stereo/performance result and archive. |
-| 22 | Archive as implemented. |
-| 23 | Archive as implemented. |
-| 26 | Archive as implemented; point current identity model to 31. |
-| 27 | Archive feature; residual cleanup continues in 30/38. |
-| 28 | Archive as implemented and superseded by 31. |
+| 22 | Closed as implemented on 2026-08-03. |
+| 23 | Closed as implemented on 2026-08-03. |
+| 26 | Closed as implemented on 2026-08-03; current identity model remains in 31. |
+| 27 | Closed on 2026-08-03; residual cleanup continues in 38. |
+| 28 | Closed as implemented and superseded by 31 on 2026-08-03. |
 | 29 | Replace obsolete current-state prose, verify, and archive. |
-| 30 | Mark feature complete; retain only P3 cleanup in 38. |
+| 30 | Closed as feature-complete on 2026-08-03; P3 cleanup remains in 38. |
 | 31 | Keep open at P1 and rewrite around actual Phase F/legacy state. |
 | 32 | Keep open at P1 with checked test-slice progress. |
 
@@ -96,8 +97,8 @@ criterion and makes the highest-risk behavior expensive to review.
 
 This audit issue is complete when:
 
-- every archive candidate has a closing note and has moved to
-  `docs/issues/_closed`;
+- verification-gated issues 17, 20, 21, and 29 have closing evidence and move
+  to `docs/issues/_closed`;
 - issues 31 and 32 contain current checked progress instead of contradictory
   pre-implementation status text;
 - issues 34 through 39 have been accepted, reprioritized, or explicitly
