@@ -1,5 +1,17 @@
 # 21 - VR stereo portal visibility union and hot-loop allocation reduction
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate after a current headset visual/performance check.
+
+Priority: P2 for manual regression verification.
+
+The renderer computes per-eye portal visibility, builds a conservative union
+for frame-level instances, preserves per-eye clip results, and exposes per-eye
+debug counts. Contract tests compare independent-camera visibility. The
+remaining evidence is headset-only: confirm there is no eye conflict, blinking,
+or mono clipping regression, then archive.
+
 ## Goal
 
 Optimize XR portal visibility and portal instance rendering without changing the mathematical rendering contract.

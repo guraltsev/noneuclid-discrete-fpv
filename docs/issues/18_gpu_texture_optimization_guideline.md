@@ -1,5 +1,19 @@
 # 18 - GPU texture optimization guideline
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; runtime texture optimization is implemented.
+
+Priority: none for the original runtime-texture scope. Packaging follow-up is
+P0 in issue 34.
+
+Floor definitions now use runtime KTX2 color maps, preload support and mipmap/
+color-space handling exist, conversion scripts are checked in, and the asset
+documentation describes the workflow. This solved browser texture selection but
+not deployment size: raw authoring assets remain under `public` and are copied
+into the site. Close this issue and continue the distinct packaging problem in
+[issue 34](34_reduce_deployment_and_repository_asset_footprint.md).
+
 ## Goal
 
 Reduce first-load texture cost and GPU memory pressure without noticeably reducing the visible quality of the current worlds.

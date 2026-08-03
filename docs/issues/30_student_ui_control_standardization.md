@@ -1,5 +1,18 @@
 # 30 - Student UI control standardization and discoverability
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate for the feature; retain only a P3 cleanup follow-up.
+
+Priority: P3.
+
+Input intents, structured world interactions, contextual help, shared result
+badges, normalized context-menu routing, input-specific hints, and palette
+tooltips are implemented with tests. Remaining cleanup includes deprecated
+`desktopPrompt`/`xrPrompt` fields and unused DOM palette/editor/input paths.
+Update the phase list with completed status, archive the feature blueprint, and
+coordinate removal work through issue 38.
+
 ## Goal
 
 Make the exploration interface predictable for students by establishing one

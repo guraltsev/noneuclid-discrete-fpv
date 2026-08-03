@@ -1,5 +1,21 @@
 # 31 - Geodesic end model and portal-safe curve shortening rehaul
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: active; revise this issue before further Phase F work.
+
+Priority: P1 domain correctness.
+
+Phases A-E are implemented, and Phase F is no longer wholly unimplemented:
+explicit shortening-pair objects, endpoint-role detach, portal-aware movement,
+fusion, and the active frame-loop path now exist. The status and diagnosis
+sections therefore understate progress. At the same time, legacy emitter
+connections, segment `connectionState`, legacy tie/detach, and old straightening
+APIs remain despite this issue saying they should be retired. Replace the prose
+status with a checked migration list, keep this issue open until the missing
+issue-32 safety tests pass, and remove the legacy path only after equivalent
+behavior is protected.
+
 ## Goal
 
 Rehaul the geodesic system around explicit geodesic ends, not whole-geodesic

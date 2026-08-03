@@ -1,5 +1,18 @@
 # 27 - Common in-scene palette and aimer interaction
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; primary feature work is complete.
+
+Priority: P3 for residual compatibility cleanup.
+
+Desktop and XR now feed one scene-palette input/controller model, desktop keeps
+pointer lock for normal menu use, shared tool state exists, and the in-scene
+sign editor and object menus are implemented. Unused DOM palette/input modules
+and an instantiated legacy desktop editor remain as cleanup rather than missing
+feature behavior. Archive this blueprint and track extraction/removal in issues
+30 and 38.
+
 ## Goal
 
 Replace the split desktop DOM palette and VR-only scene palette with one common in-scene palette system.

@@ -1,5 +1,17 @@
 # 28 - Incoming geodesic emitters
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; implemented behavior, superseded identity model.
+
+Priority: none as a separate issue.
+
+Emitter-hit locking, placing an emitter on a segment, locked rendering/actions,
+and deletion cleanup are implemented and tested. Issue 31's explicit interval
+endpoint attachments supersede this document's outgoing/incoming connection
+model. Archive with a link to issue 31 rather than adapting new work to the old
+terminology.
+
 ## Goal
 
 Allow a geodesic emitter to receive an incoming geodesic, not only create outgoing geodesics.

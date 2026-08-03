@@ -1,5 +1,16 @@
 # 23 - Cylindrical collision shapes
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; implementation is complete.
+
+Priority: none.
+
+The runtime collision-shape union now resolves to `SimpleCollisionCylinder`,
+and player/object movement, forbidden zones, placement checks, and debug
+wireframes use cylinder bounds. Movement and collision tests cover the public
+behavior. Add a closing note and archive.
+
 ## Goal
 
 Replace axis-parallel collision boxes with vertical collision cylinders.

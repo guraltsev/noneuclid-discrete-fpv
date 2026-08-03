@@ -1,5 +1,18 @@
 # 26 - Geodesic cannon segment tool
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; feature complete and domain model superseded by issue
+31.
+
+Priority: none for the original segment-tool scope.
+
+Placement, aiming, bounded extension, wall/portal terminals, cell-local segment
+chains, runtime identities, rendering, reset, and interaction tests exist. The
+later interval/endpoint model in issue 31 replaced parts of this document's
+identity terminology. Archive with a note that issue 31 is the source of truth
+for current geodesic ownership and endpoint behavior.
+
 ## Goal
 
 Add an interactive geodesic cannon tool for constructing a locally straight, portal-aware geodesic trace as a chain of runtime objects.

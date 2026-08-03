@@ -1,5 +1,17 @@
 # 16 - Finish stage 04 renderer meshes, debug overlay, and renderer contract tests
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; implementation is substantially complete.
+
+Priority: P3 only if an explicit world-id debug field is still desired.
+
+The current debug state exposes cell, pose, yaw, XR status, movement result,
+frame/WebGL statistics, per-eye portal counts, instance counts, and live
+geometry-deformation state. Renderer contract coverage also exists. The issue's
+remaining language describes gaps that are no longer present; add a closing
+verification note and move it to `_closed`.
+
 ## Goal
 
 Close the remaining gaps from the original stage-04 desktop-scene handoff now that the basic desktop-playable foundation exists.

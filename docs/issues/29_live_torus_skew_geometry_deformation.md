@@ -1,5 +1,18 @@
 # 29 - Dynamic geometry deformation infrastructure and torus skew MVP
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; implementation is substantially complete.
+
+Priority: P2 only for fresh end-to-end/manual verification.
+
+The repository now has deformation families, a worker/inline build client,
+stale-result rejection, topology-preserving validation, atomic snapshot commit,
+runtime pose transforms, torus-skew controls, debug state, and focused tests.
+The `Current Code Findings` section incorrectly says the compiled world is
+static and no hot-swap boundary exists. Replace that section with a short
+outcome/verification note and archive.
+
 ## Goal
 
 Add a safe dynamic-geometry infrastructure that can install topology-preserving

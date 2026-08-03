@@ -1,5 +1,18 @@
 # 15 - VR readiness for locomotion and collision
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; duplicated and superseded by issue 17.
+
+Priority: none as a separate implementation issue.
+
+The XR session, player-rig, physical-motion, joystick-locomotion, reset, and
+shared movement/collision paths now exist with render-contract tests. Issue 17
+subsumed this narrower readiness proposal. Before archiving, record whether a
+current headset smoke check has been completed; any missing manual verification
+should be tracked as a small regression-check task rather than keeping both VR
+blueprints open.
+
 ## Goal
 
 Make the current world explorable in VR with WebXR while keeping the first scope narrow:

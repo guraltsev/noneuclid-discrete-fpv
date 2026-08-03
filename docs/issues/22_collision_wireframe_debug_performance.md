@@ -1,5 +1,16 @@
 # 22 - Collision wireframe debug performance
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; implementation is complete.
+
+Priority: none unless a measured regression reappears.
+
+Forbidden-zone and object collision helpers now use lightweight line-segment
+cylinder outlines and are kept out of ordinary portal archetype rendering.
+Relevant render-contract tests exist. Add closing verification evidence and
+archive.
+
 ## Goal
 
 Fix the large frame-rate regression caused by the collision geometry wireframe debug toggle.

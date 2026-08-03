@@ -1,5 +1,18 @@
 # 17 - Stage 08 WebXR VR locomotion, collision, and controllers
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate after a current manual headset smoke check.
+
+Priority: P2 for manual regression verification, not new architecture.
+
+WebXR entry, session state, headset/player rig, controller input, room-scale
+collision approval, reset, and desktop fallback are implemented. The issue's
+current-state section predates that work. Its acceptance criterion requiring one
+shared render root for both eyes was superseded by issue 21's true-stereo,
+per-eye visibility model and must not be restored. Rewrite the closing note
+around the current stereo architecture, record headset results, and archive.
+
 ## Goal
 
 Implement a complete first WebXR VR path for the current Three.js app.

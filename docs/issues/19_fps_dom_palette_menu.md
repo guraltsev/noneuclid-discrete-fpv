@@ -1,5 +1,17 @@
 # 19 - FPS DOM palette menu
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate; superseded by issue 27.
+
+Priority: none as a product direction.
+
+The permanent desktop DOM palette proposed here was replaced by the shared
+in-scene desktop/XR palette. Normal menu interaction no longer imports the DOM
+palette implementation. Do not finish this obsolete design; archive it with a
+superseded-by-27 note. Removal of residual unused DOM compatibility modules is
+tracked by issues 30 and 38.
+
 ## Goal
 
 Implement the first version of the shared palette menu in normal FPS desktop mode using standard DOM controls and browser UI behavior.

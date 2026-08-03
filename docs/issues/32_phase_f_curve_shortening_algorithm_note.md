@@ -1,5 +1,21 @@
 # 32 - Phase F curve-shortening algorithm note
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: active; partially implemented and insufficiently verified.
+
+Priority: P1 domain correctness.
+
+Current tests cover same-emitter detach, ready-pair fusion, angle readiness,
+portal crossing with moved-start word updates, and short-half absorption. The
+document still reads as a pre-implementation note and its 15 test slices are
+not tracked as completed/pending. Convert them to a checklist. Direct coverage
+is still needed for one-half forbidden-zone survival, wall-hit failure,
+monotonicity rollback including candidate portal words, computed-object cleanup,
+final no-portal-spanning fusion, free-loop outcomes, and role-aware word
+composition. Merge this issue into issue 31 after those contracts are verified,
+or archive it as the final algorithm record.
+
 ## Goal
 
 Make Phase F of `31_geodesic_end_model_and_curve_shortening_rehaul.md`

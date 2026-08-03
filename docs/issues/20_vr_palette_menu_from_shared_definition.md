@@ -1,5 +1,16 @@
 # 20 - VR palette menu from shared definition
 
+## Repository audit status - 2026-08-03T14:24:10-05:00
+
+Status: archive candidate after a current headset interaction check.
+
+Priority: P2 for manual verification only.
+
+Shared definitions, scene UI rendering, controller pointer/select behavior,
+tracked hand models, page headers, world/debug settings, and contract tests now
+exist. Issues 27 and 30 subsequently generalized the UI beyond a VR-only
+palette. Record a brief headset result and archive this implementation blueprint.
+
 ## Goal
 
 Port the FPS palette menu to immersive VR by reusing the shared menu definition from issue 19 and rendering it with a VR-capable UI library.
