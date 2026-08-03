@@ -33,7 +33,7 @@ describe("scenePaletteLibraryAdapter", () => {
     expect(itemIds).toContain("tool-options:place-sign");
     expect(imageSources).toContain(publicAssetUrl("WoodenSign1/WoodenSign1.png"));
     expect(imageSources).toContain(publicAssetUrl("flashlight/Lightsaber.png"));
-    expect(imageSources).toContain(publicAssetUrl("icons/Ruler.png"));
+    expect(imageSources).toContain(publicAssetUrl("icons/ruler.svg"));
     expect(imageSources).toContain(publicAssetUrl("icons/protractor.png"));
 
     adapter.dispose();
@@ -84,7 +84,7 @@ describe("scenePaletteLibraryAdapter", () => {
     expect(actionIds).toContain("geodesic-cannon-action:aim:g-a");
     expect(actionIds).toContain("geodesic-cannon-action:delete:g-a");
     expect(imageSources).toContain(publicAssetUrl("icons/aim-inverted.png"));
-    expect(imageSources).toContain(publicAssetUrl("icons/carry-icon-white.png"));
+    expect(imageSources).toContain(publicAssetUrl("icons/carry-inverted.svg"));
     expect(imageSources).toContain(publicAssetUrl("icons/unlink-inverted.png"));
 
     adapter.dispose();

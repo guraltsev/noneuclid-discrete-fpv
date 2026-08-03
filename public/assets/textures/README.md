@@ -1,6 +1,6 @@
 # Texture Runtime Conversion
 
-Floor textures are kept in their original downloaded folders, but the runtime should load the compressed color map from each texture's `runtime/` directory. The runtime files are KTX2/Basis textures with mipmaps, which are much quicker for the browser and GPU to load than the original 4K JPG source maps.
+Floor textures are currently kept in their original downloaded folders, but the runtime should load the compressed color map from each texture's `runtime/` directory. The runtime files are KTX2/Basis textures with mipmaps, which are much quicker for the browser and GPU to load than the original 4K JPG source maps. The original folders are source-only material and remain temporarily public until issue 34 moves them; preserve their entry in [the asset provenance manifest](../../../docs/ASSET_PROVENANCE.md) when doing so.
 
 ## Add a new floor texture
 

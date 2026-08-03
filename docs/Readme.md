@@ -6,6 +6,10 @@ first.
 
 ## Living Guides
 
+- [DEVELOPMENT.md](DEVELOPMENT.md) gives a new contributor the install, run,
+  verification, and issue-tracking workflow.
+- [DEPLOYMENT.md](DEPLOYMENT.md) records GitHub Pages, HTTPS, WebXR, and release
+  checks without placing them in the learner-facing README.
 - [Development_guide.md](Development_guide.md) gives the project overview,
   repository map, stack summary, deployment notes, and links to the focused
   guides.
@@ -15,6 +19,8 @@ first.
   and in-code explanation rules.
 - [testing.md](testing.md) records the testing philosophy, scripts, and what
   each kind of test should prove.
+- [ASSET_PROVENANCE.md](ASSET_PROVENANCE.md) is the canonical record of
+  third-party asset origins, licenses, required credits, and release status.
 
 ## Design Records
 

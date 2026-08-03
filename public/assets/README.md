@@ -2,9 +2,14 @@
 
 This directory holds the runtime asset graph used by the browser build.
 
-The older ad hoc bundle remains archived under `public/assets/_legacy/`. New
-work should use the source/runtime split below instead of extending that
-archive.
+Before adding, moving, or reusing an asset, read the canonical
+[third-party asset provenance and notices](../../docs/ASSET_PROVENANCE.md).
+Vite copies everything in this directory into a release, so a source file under
+`public/assets` is public even when the application never requests it.
+
+The older ad hoc bundle remains under `public/assets/_legacy/`; some current
+example worlds still load models from it. New work should use the source/runtime
+split below instead of extending that bundle.
 
 ## Texture Layout
 
@@ -22,7 +27,8 @@ public/assets/textures/
 ```
 
 For existing textures we are adding `runtime/` first and leaving the source
-folders in place to avoid churn.
+folders in place temporarily. Issue 34 will move source material outside the
+public build input without separating it from its provenance record.
 
 ## Runtime Policy
 

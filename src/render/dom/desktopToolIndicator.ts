@@ -7,9 +7,9 @@ const signIconSources: Record<PlacedFlagType, string> = {
   WoodenSign2: publicAssetUrl("WoodenSign2/WoodenSign2.png"),
 };
 const rayToolIconSource = publicAssetUrl("flashlight/Lightsaber.png");
-const carryToolIconSource = publicAssetUrl("icons/carry-icon.png");
+const carryToolIconSource = publicAssetUrl("icons/carry.svg");
 const protractorToolIconSource = publicAssetUrl("icons/protractor.png");
-const measureLengthToolIconSource = publicAssetUrl("icons/Ruler.png");
+const measureLengthToolIconSource = publicAssetUrl("icons/ruler.svg");
 
 export interface DesktopToolIndicator {
   readonly root: HTMLDivElement;

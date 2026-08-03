@@ -83,12 +83,12 @@ const signIconSources: Record<PlacedFlagType, string> = {
   WoodenSign2: publicAssetUrl("WoodenSign2/WoodenSign2.png"),
 };
 const aimIconSource = publicAssetUrl("icons/aim-inverted.png");
-const carryIconSource = publicAssetUrl("icons/carry-icon-white.png");
+const carryIconSource = publicAssetUrl("icons/carry-inverted.svg");
 const lockIconSource = publicAssetUrl("icons/lock.png");
 const unlinkIconSource = publicAssetUrl("icons/unlink-inverted.png");
 const rayToolIconSource = publicAssetUrl("flashlight/Lightsaber.png");
 const protractorToolIconSource = publicAssetUrl("icons/protractor.png");
-const measureLengthToolIconSource = publicAssetUrl("icons/Ruler.png");
+const measureLengthToolIconSource = publicAssetUrl("icons/ruler.svg");
 const signTypeLabels: Record<PlacedFlagType, string> = {
   WoodenSign1: "Wooden Sign 1",
   WoodenSign2: "Wooden Sign 2",

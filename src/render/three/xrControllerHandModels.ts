@@ -31,7 +31,7 @@ const handSideSplitEpsilon = 1e-5;
 const wristToolIndicatorLocalOffset = new THREE.Vector3(0, 0.18, -0.06);
 const wristToolIndicatorScaleMeters = 0.082;
 const wristToolIndicatorRenderOrder = 1004;
-const wristToolIndicatorCarryIconSource = publicAssetUrl("icons/carry-icon.png");
+const wristToolIndicatorCarryIconSource = publicAssetUrl("icons/carry.svg");
 
 type XrFrameWithJointPose = XRFrame & {
   getJointPose?(jointSpace: XRSpace, baseSpace: XRReferenceSpace): Pick<XRPose, "transform"> | undefined;
@@ -144,7 +144,7 @@ const wristToolIndicatorRotateIconSource = publicAssetUrl("icons/arrow-circle-in
 const wristToolIndicatorAimIconSource = publicAssetUrl("icons/aim-inverted.png");
 const wristToolIndicatorRayIconSource = publicAssetUrl("flashlight/Lightsaber.png");
 const wristToolIndicatorProtractorIconSource = publicAssetUrl("icons/protractor.png");
-const wristToolIndicatorMeasureLengthIconSource = publicAssetUrl("icons/Ruler.png");
+const wristToolIndicatorMeasureLengthIconSource = publicAssetUrl("icons/ruler.svg");
 
 export function resolveWristToolIndicatorVisual(
   toolId: RuntimeToolId,

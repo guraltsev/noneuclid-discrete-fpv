@@ -21,7 +21,7 @@ describe("helpLensDefinition", () => {
         intent: "context-menu",
         mode: "desktop",
         label: "Right click",
-        iconSrc: publicAssetUrl("icons/right-click-icon.png"),
+        iconSrc: publicAssetUrl("icons/mouse-button-right.svg"),
       },
       label: "Edit",
     }]);
@@ -81,7 +81,7 @@ describe("helpLensDefinition", () => {
         intent: "move",
         mode: "desktop",
         label: "Arrow keys",
-        iconSrc: publicAssetUrl("icons/arrowkeys.png"),
+        iconSrc: publicAssetUrl("icons/arrowkeys.svg"),
       },
       label: "move",
     });

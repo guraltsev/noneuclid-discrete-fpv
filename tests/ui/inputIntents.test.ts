@@ -6,19 +6,19 @@ describe("inputIntents", () => {
   it("maps desktop primary, context, and help to desktop glyph assets", () => {
     expect(getInputHintGlyph("desktop", "primary")).toMatchObject({
       label: "Left click",
-      iconSrc: publicAssetUrl("icons/left-click-icon.png"),
+      iconSrc: publicAssetUrl("icons/mouse-button-left.svg"),
     });
     expect(getInputHintGlyph("desktop", "context-menu")).toMatchObject({
       label: "Right click",
-      iconSrc: publicAssetUrl("icons/right-click-icon.png"),
+      iconSrc: publicAssetUrl("icons/mouse-button-right.svg"),
     });
     expect(getInputHintGlyph("desktop", "help")).toMatchObject({
       label: "H",
-      iconSrc: publicAssetUrl("icons/h-alphabet-round-icon.png"),
+      iconSrc: publicAssetUrl("icons/h-alphabet.svg"),
     });
     expect(getInputHintGlyph("desktop", "move")).toMatchObject({
       label: "Arrow keys",
-      iconSrc: publicAssetUrl("icons/arrowkeys.png"),
+      iconSrc: publicAssetUrl("icons/arrowkeys.svg"),
     });
   });
 

@@ -90,17 +90,17 @@ function createHintIcon(label: string): HTMLImageElement {
 function inlineIconSrcByLabel(label: string): string {
   switch (label) {
     case "Left click":
-      return publicAssetUrl("icons/left-click-icon.png");
+      return publicAssetUrl("icons/mouse-button-left.svg");
     case "Right click":
-      return publicAssetUrl("icons/right-click-icon.png");
+      return publicAssetUrl("icons/mouse-button-right.svg");
     case "F":
-      return publicAssetUrl("icons/f-alphabet-round-icon.png");
+      return publicAssetUrl("icons/f-alphabet.svg");
     case "B":
-      return publicAssetUrl("icons/b-alphabet-round-icon.png");
+      return publicAssetUrl("icons/b-alphabet.svg");
     case "H":
-      return publicAssetUrl("icons/h-alphabet-round-icon.png");
+      return publicAssetUrl("icons/h-alphabet.svg");
     case "Y":
-      return publicAssetUrl("icons/y-alphabet-round-icon.png");
+      return publicAssetUrl("icons/y-alphabet.svg");
   }
 
   return "";

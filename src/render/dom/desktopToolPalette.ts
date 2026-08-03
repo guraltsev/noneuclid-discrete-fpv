@@ -11,11 +11,11 @@ import type { PlacedFlagType } from "../../world-objects/placedFlags";
 
 const aimIconSource = publicAssetUrl("icons/aim-inverted.png");
 const lockIconSource = publicAssetUrl("icons/lock.png");
-const carryIconSource = publicAssetUrl("icons/carry-icon-white.png");
+const carryIconSource = publicAssetUrl("icons/carry-inverted.svg");
 const unlinkIconSource = publicAssetUrl("icons/unlink-inverted.png");
 const rayToolIconSource = publicAssetUrl("flashlight/Lightsaber.png");
 const protractorToolIconSource = publicAssetUrl("icons/protractor.png");
-const measureLengthToolIconSource = publicAssetUrl("icons/Ruler.png");
+const measureLengthToolIconSource = publicAssetUrl("icons/ruler.svg");
 
 export interface DesktopPaletteView {
   readonly pageId: PaletteDefinition["pageId"];
@@ -1330,19 +1330,19 @@ function createInlineInputIcon(label: string): HTMLImageElement {
 function inlineInputIconSrcByLabel(label: string): string {
   switch (label) {
     case "Arrow keys":
-      return publicAssetUrl("icons/arrowkeys.png");
+      return publicAssetUrl("icons/arrowkeys.svg");
     case "Left click":
-      return publicAssetUrl("icons/left-click-icon.png");
+      return publicAssetUrl("icons/mouse-button-left.svg");
     case "Right click":
-      return publicAssetUrl("icons/right-click-icon.png");
+      return publicAssetUrl("icons/mouse-button-right.svg");
     case "F":
-      return publicAssetUrl("icons/f-alphabet-round-icon.png");
+      return publicAssetUrl("icons/f-alphabet.svg");
     case "B":
-      return publicAssetUrl("icons/b-alphabet-round-icon.png");
+      return publicAssetUrl("icons/b-alphabet.svg");
     case "H":
-      return publicAssetUrl("icons/h-alphabet-round-icon.png");
+      return publicAssetUrl("icons/h-alphabet.svg");
     default:
-      return publicAssetUrl("icons/h-alphabet-round-icon.png");
+      return publicAssetUrl("icons/h-alphabet.svg");
   }
 }
 

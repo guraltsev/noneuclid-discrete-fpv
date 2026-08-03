@@ -41,7 +41,7 @@ describe("xrControllerHandModels", () => {
     });
     expect(resolveWristToolIndicatorVisual("measure-length", "WoodenSign1")).toMatchObject({
       icon: "image",
-      imageSource: publicAssetUrl("icons/Ruler.png"),
+      imageSource: publicAssetUrl("icons/ruler.svg"),
       label: "Length",
     });
     expect(resolveWristToolIndicatorVisual("geodesic-cannon-rotate", "WoodenSign1")).toMatchObject({
@@ -51,7 +51,7 @@ describe("xrControllerHandModels", () => {
     });
     expect(resolveWristToolIndicatorVisual("geodesic-cannon-carry", "WoodenSign1")).toMatchObject({
       icon: "image",
-      imageSource: publicAssetUrl("icons/carry-icon.png"),
+      imageSource: publicAssetUrl("icons/carry.svg"),
       label: "Carry",
     });
     expect(resolveWristToolIndicatorVisual("none", "WoodenSign1")).toBeUndefined();

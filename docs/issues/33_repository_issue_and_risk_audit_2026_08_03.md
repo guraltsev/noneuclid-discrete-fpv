@@ -59,7 +59,7 @@ those commands run in CI or a Node-enabled environment.
 - [36 - Add pre-merge CI and browser smoke coverage](36_add_premerge_ci_and_browser_smoke_coverage.md), P1.
 - [37 - Make Pages deployment repository-name agnostic](37_align_pages_and_deployment_configuration.md), P2.
 - [38 - Decompose runtime monoliths and retire legacy paths](38_decompose_runtime_monoliths_and_retire_legacy_paths.md), P1/P3 staged cleanup.
-- [39 - Document project and third-party asset provenance](39_document_project_and_asset_provenance.md), P2.
+- [39 - Document project and third-party asset provenance](_closed/39_document_project_and_asset_provenance.md), completed 2026-08-03.
 
 ## Important evidence
 

@@ -22,23 +22,23 @@ export interface InputHintGlyph {
 const desktopHints: Readonly<Record<InputIntent, Omit<InputHintGlyph, "intent" | "mode">>> = {
   move: {
     label: "Arrow keys",
-    iconSrc: publicAssetUrl("icons/arrowkeys.png"),
+    iconSrc: publicAssetUrl("icons/arrowkeys.svg"),
   },
   primary: {
     label: "Left click",
-    iconSrc: publicAssetUrl("icons/left-click-icon.png"),
+    iconSrc: publicAssetUrl("icons/mouse-button-left.svg"),
   },
   "context-menu": {
     label: "Right click",
-    iconSrc: publicAssetUrl("icons/right-click-icon.png"),
+    iconSrc: publicAssetUrl("icons/mouse-button-right.svg"),
   },
   "keyboard-context-fallback": {
     label: "F",
-    iconSrc: publicAssetUrl("icons/f-alphabet-round-icon.png"),
+    iconSrc: publicAssetUrl("icons/f-alphabet.svg"),
   },
   help: {
     label: "H",
-    iconSrc: publicAssetUrl("icons/h-alphabet-round-icon.png"),
+    iconSrc: publicAssetUrl("icons/h-alphabet.svg"),
   },
   "next-focus-target": {
     label: "Tab",
@@ -66,11 +66,11 @@ const xrHints: Readonly<Record<InputIntent, Omit<InputHintGlyph, "intent" | "mod
   },
   help: {
     label: "B",
-    iconSrc: publicAssetUrl("icons/b-alphabet-round-icon.png"),
+    iconSrc: publicAssetUrl("icons/b-alphabet.svg"),
   },
   "next-focus-target": {
     label: "Y",
-    iconSrc: publicAssetUrl("icons/y-alphabet-round-icon.png"),
+    iconSrc: publicAssetUrl("icons/y-alphabet.svg"),
   },
   cancel: {
     label: "Side trigger",
